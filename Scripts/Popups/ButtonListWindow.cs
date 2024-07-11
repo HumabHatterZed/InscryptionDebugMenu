@@ -12,7 +12,7 @@ public class ButtonListPopup : BaseWindow
 
 	private string header = "";
 	private string filterText = "";
-	private List<string> buttonNames = new();
+	public List<string> buttonNames = new();
 	private List<string> buttonValues = new();
 	private string popupNameOverride = "Button List";
 	private Action<int, string, string> callback;
@@ -36,30 +36,26 @@ public class ButtonListPopup : BaseWindow
 		filterText = TextField(filterText, new(0, RowHeight / 2));
 
 		DrawExtraTools();
-
 		StartNewColumn();
 		
 		int j = 0;
 		for (int i = 0; i < namesCount; i++)
 		{
-			string buttonName = buttonNames[i];
 			string buttonValue = buttonValues[i];
-			if (!string.IsNullOrEmpty(filterText))
+            string buttonName = ModifyButtonName(buttonNames[i], buttonValue);
+            if (!string.IsNullOrEmpty(filterText))
 			{
-				if (!buttonName.ContainsText(filterText, false) &&
-				    !buttonValue.ContainsText(filterText, false))
-				{
+				if (!buttonName.ContainsText(filterText, false) && !buttonValue.ContainsText(filterText, false))
 					continue;
-				}
 			}
 			
-			if(!IsFiltered(buttonName, buttonValue))
+			if(!IsWhitelisted(buttonName, buttonValue))
 				continue;
 
 			if (Button(buttonName, disabled: () => new() { Disabled = buttonValue == disableMatch }))
 			{
 				callback(i, buttonValue, disableMatch);
-				Plugin.Instance.ToggleWindow<ButtonListPopup>();
+				Plugin.Instance.ToggleWindow(this.GetType()); // close window
 			}
 
 			j++;
@@ -73,7 +69,7 @@ public class ButtonListPopup : BaseWindow
 		GUI.EndScrollView();
 	}
 
-	public virtual bool IsFiltered(string buttonName, string buttonValue)
+	public virtual bool IsWhitelisted(string buttonName, string buttonValue)
 	{
 		return true;
 	}
@@ -82,15 +78,20 @@ public class ButtonListPopup : BaseWindow
 	{
 		
 	}
+	public virtual string ModifyButtonName(string name, string value)
+	{
+		return name;
+	}
 
-	public static bool OnGUI(DrawableGUI gui, string buttonText, string headerText, Func<Tuple<List<string>, List<string>>> GetDataCallback, Action<int, string, string> OnChoseButtonCallback, string disableMatch = null)
+	public static bool OnGUI<T>(DrawableGUI gui, string buttonText, string headerText, Func<Tuple<List<string>, List<string>>> GetDataCallback, Action<int, string, string> OnChoseButtonCallback, string disableMatch = null)
+		where T : ButtonListPopup
 	{
 		if (gui.Button(buttonText))
 		{
 			Debug.Log("ButtonListPopup pressed " + buttonText);
 			Tuple<List<string>, List<string>> data = GetDataCallback();
 
-			ButtonListPopup buttonListPopup = Plugin.Instance.ToggleWindow<ButtonListPopup>();
+			T buttonListPopup = (T)Plugin.Instance.ToggleWindow(typeof(T));
 			buttonListPopup.position = Vector2.zero;
 			buttonListPopup.popupNameOverride = buttonText;
 			buttonListPopup.callback = OnChoseButtonCallback;

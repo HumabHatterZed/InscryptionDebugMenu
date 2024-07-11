@@ -47,7 +47,11 @@ public static class DrawCardInfo // used for the deck editors
 		{
             GUILayout.Label("No emissions in Act 2!", Helpers.DisabledButtonStyle());
         }
-		else
+		else if (SaveManager.SaveFile.IsGrimora)
+        {
+            GUILayout.Label("Force Emission", Helpers.DisabledButtonStyle());
+        }
+        else
 		{
             CardModificationInfo emissionMod = cardInfo.Mods.Find(a => a.singletonId == EmissionMod);
             if (emissionMod != null)
@@ -216,7 +220,7 @@ public static class DrawCardInfo // used for the deck editors
 
         if (hasForcedPortrait) // if we have a portrait mod
         {
-            if (GUILayout.Button("Reset Portrait"))
+            if (GUILayout.Button("Reset Portrait", Helpers.EnabledButtonStyle()))
             {
                 cardInfo.Mods.RemoveAll(
                     x => x.singletonId == PortraitMod ||
@@ -241,97 +245,125 @@ public static class DrawCardInfo // used for the deck editors
         bool hasShieldPortrait = SaveManager.SaveFile.IsPart2 ? cardInfo.HasPixelBrokenShieldPortrait() : cardInfo.HasBrokenShieldPortrait();
         bool hasSacrificePortrait = SaveManager.SaveFile.IsPart2 ? cardInfo.HasPixelSacrificablePortrait() : cardInfo.HasSacrificablePortrait();
         bool hasTrapPortrait = SaveManager.SaveFile.IsPart2 ? cardInfo.HasPixelSteelTrapPortrait() : cardInfo.HasSteelTrapPortrait();
-        if (hasAltPortrait && GUILayout.Button("Force Alt"))
+        if (hasAltPortrait)
         {
-            cardInfo.Mods.RemoveAll(
-                x => x.singletonId == PortraitMod ||
-                x.singletonId == ShieldPortraitMod ||
-                x.singletonId == SacrificePortraitMod ||
-                x.singletonId == TrapPortraitMod);
+            if (cardInfo.Mods.Exists(x => x.singletonId == PortraitMod))
+            {
+                GUILayout.Label("Force Alt Portrait", Helpers.DisabledButtonStyle());
+            }
+            else if (GUILayout.Button("Force Alt Portrait", Helpers.EnabledButtonStyle()))
+            {
+                cardInfo.Mods.RemoveAll(
+                    x => x.singletonId == PortraitMod ||
+                    x.singletonId == ShieldPortraitMod ||
+                    x.singletonId == SacrificePortraitMod ||
+                    x.singletonId == TrapPortraitMod);
 
-            CardModificationInfo portrait = new() { singletonId = PortraitMod };
-            if (deckInfo != null)
-            {
-                deckInfo.ModifyCard(cardInfo, portrait);
-                SaveManager.SaveToFile(false);
+                CardModificationInfo portrait = new() { singletonId = PortraitMod };
+                if (deckInfo != null)
+                {
+                    deckInfo.ModifyCard(cardInfo, portrait);
+                    SaveManager.SaveToFile(false);
+                }
+                else
+                {
+                    cardInfo.Mods.Add(portrait);
+                }
+                return true;
             }
-            else
-            {
-                cardInfo.Mods.Add(portrait);
-            }
-            return true;
         }
         else
         {
             GUILayout.Label("No Alt Portrait", Helpers.DisabledButtonStyle());
         }
-        if (hasShieldPortrait && GUILayout.Button("Force Shield"))
+        if (hasShieldPortrait)
         {
-            cardInfo.Mods.RemoveAll(
-                x => x.singletonId == PortraitMod ||
-                x.singletonId == ShieldPortraitMod ||
-                x.singletonId == SacrificePortraitMod ||
-                x.singletonId == TrapPortraitMod);
+            if (cardInfo.Mods.Exists(x => x.singletonId == ShieldPortraitMod))
+            {
+                GUILayout.Label("Force Shield Portrait", Helpers.DisabledButtonStyle());
+            }
+            else if (GUILayout.Button("Force Shield Portrait", Helpers.EnabledButtonStyle()))
+            {
+                cardInfo.Mods.RemoveAll(
+                    x => x.singletonId == PortraitMod ||
+                    x.singletonId == ShieldPortraitMod ||
+                    x.singletonId == SacrificePortraitMod ||
+                    x.singletonId == TrapPortraitMod);
 
-            CardModificationInfo portrait = new() { singletonId = ShieldPortraitMod };
-            if (deckInfo != null)
-            {
-                deckInfo.ModifyCard(cardInfo, portrait);
-                SaveManager.SaveToFile(false);
+                CardModificationInfo portrait = new() { singletonId = ShieldPortraitMod };
+                if (deckInfo != null)
+                {
+                    deckInfo.ModifyCard(cardInfo, portrait);
+                    SaveManager.SaveToFile(false);
+                }
+                else
+                {
+                    cardInfo.Mods.Add(portrait);
+                }
+                return true;
             }
-            else
-            {
-                cardInfo.Mods.Add(portrait);
-            }
-            return true;
         }
         else
         {
             GUILayout.Label("No Shield Portrait", Helpers.DisabledButtonStyle());
         }
-        if (hasSacrificePortrait && GUILayout.Button("Force Sacrifice"))
+        if (hasSacrificePortrait)
         {
-            cardInfo.Mods.RemoveAll(
-                x => x.singletonId == PortraitMod ||
-                x.singletonId == ShieldPortraitMod ||
-                x.singletonId == SacrificePortraitMod ||
-                x.singletonId == TrapPortraitMod);
+            if (cardInfo.Mods.Exists(x => x.singletonId == SacrificePortraitMod))
+            {
+                GUILayout.Label("Force Sacrifice Portrait", Helpers.DisabledButtonStyle());
+            }
+            else if (GUILayout.Button("Force Sacrifice Portrait", Helpers.EnabledButtonStyle()))
+            {
+                cardInfo.Mods.RemoveAll(
+                    x => x.singletonId == PortraitMod ||
+                    x.singletonId == ShieldPortraitMod ||
+                    x.singletonId == SacrificePortraitMod ||
+                    x.singletonId == TrapPortraitMod);
 
-            CardModificationInfo portrait = new() { singletonId = SacrificePortraitMod };
-            if (deckInfo != null)
-            {
-                deckInfo.ModifyCard(cardInfo, portrait);
-                SaveManager.SaveToFile(false);
+                CardModificationInfo portrait = new() { singletonId = SacrificePortraitMod };
+                if (deckInfo != null)
+                {
+                    deckInfo.ModifyCard(cardInfo, portrait);
+                    SaveManager.SaveToFile(false);
+                }
+                else
+                {
+                    cardInfo.Mods.Add(portrait);
+                }
+                return true;
             }
-            else
-            {
-                cardInfo.Mods.Add(portrait);
-            }
-            return true;
         }
         else
         {
             GUILayout.Label("No Sacrifice Portrait", Helpers.DisabledButtonStyle());
         }
-        if (hasTrapPortrait && GUILayout.Button("Force Trap"))
+        if (hasTrapPortrait)
         {
-            cardInfo.Mods.RemoveAll(
-                x => x.singletonId == PortraitMod ||
-                x.singletonId == ShieldPortraitMod ||
-                x.singletonId == SacrificePortraitMod ||
-                x.singletonId == TrapPortraitMod);
+            if (cardInfo.Mods.Exists(x => x.singletonId == TrapPortraitMod))
+            {
+                GUILayout.Label("Force Trap Portrait", Helpers.DisabledButtonStyle());
+            }
+            else if (GUILayout.Button("Force Trap Portrait", Helpers.EnabledButtonStyle()))
+            {
+                cardInfo.Mods.RemoveAll(
+                    x => x.singletonId == PortraitMod ||
+                    x.singletonId == ShieldPortraitMod ||
+                    x.singletonId == SacrificePortraitMod ||
+                    x.singletonId == TrapPortraitMod);
 
-            CardModificationInfo portrait = new() { singletonId = TrapPortraitMod };
-            if (deckInfo != null)
-            {
-                deckInfo.ModifyCard(cardInfo, portrait);
-                SaveManager.SaveToFile(false);
+                CardModificationInfo portrait = new() { singletonId = TrapPortraitMod };
+                if (deckInfo != null)
+                {
+                    deckInfo.ModifyCard(cardInfo, portrait);
+                    SaveManager.SaveToFile(false);
+                }
+                else
+                {
+                    cardInfo.Mods.Add(portrait);
+                }
+                return true;
             }
-            else
-            {
-                cardInfo.Mods.Add(portrait);
-            }
-            return true;
         }
         else
         {
@@ -1053,7 +1085,7 @@ public static class DrawCardInfo // used for the deck editors
                     continue;
 
 				string rulebookName = searching.Info.rulebookName.ToLowerInvariant();
-                string abilityName = searching.Info.ability.ToString();
+                string abilityName = AbilityManager.AllAbilities.Find(x => x.Info == searching.Info)?.AbilityBehavior?.Name ?? searching.Id.ToString();
 				if (!rulebookName.Contains(search.ToLowerInvariant()) && !abilityName.Contains(search.ToLowerInvariant()))
 					continue;
 			}

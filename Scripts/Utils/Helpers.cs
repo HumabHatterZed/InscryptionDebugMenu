@@ -100,7 +100,7 @@ public static partial class Helpers
 	public static void DrawBlueprintGUI(DrawableGUI window, Action<EncounterBlueprintData> OnBlueprintSelected)
 	{
 		m_selectedBlueprint = OnBlueprintSelected;
-		ButtonListPopup.OnGUI(window, "Select Blueprint", "Select Blueprint", GetAllBlueprints, OnChoseBlueprintButtonCallback);
+		ButtonListPopup.OnGUI<ButtonListPopup>(window, "Select Blueprint", "Select Blueprint", GetAllBlueprints, OnChoseBlueprintButtonCallback);
 	}
 
 	public static void OnChoseBlueprintButtonCallback(int chosenIndex, string chosenValue, string metaData)
@@ -131,7 +131,7 @@ public static partial class Helpers
 	public static void DrawOpponentsGUI(DrawableGUI window, Action<Opponent.Type> OnOpponentSelected)
 	{
 		m_selectedOpponentType = OnOpponentSelected;
-		ButtonListPopup.OnGUI(window, "Select Opponent", "Select Opponent", GetAllOpponents, OnChoseOpponentButtonCallback, Opponent.Type.NUM_TYPES.ToString());
+		ButtonListPopup.OnGUI<ButtonListPopup>(window, "Select Opponent", "Select Opponent", GetAllOpponents, OnChoseOpponentButtonCallback, Opponent.Type.NUM_TYPES.ToString());
 	}
 
 	public static void OnChoseOpponentButtonCallback(int chosenIndex, string chosenValue, string metaData)
@@ -169,7 +169,7 @@ public static partial class Helpers
 	public static void DrawTribesGUI(TriggerCardBattleSequenceWindow window, Action<Tribe> callback)
 	{
 		m_selectedTribe = callback;
-		ButtonListPopup.OnGUI(window, "Select Tribe", "Select Tribe", GetAllTribes, OnChoseTribeButtonCallback);
+		ButtonListPopup.OnGUI<ButtonListPopup>(window, "Select Tribe", "Select Tribe", GetAllTribes, OnChoseTribeButtonCallback);
 	}
 
 	private static void OnChoseTribeButtonCallback(int chosenIndex, string chosenValue, string metaData)
@@ -225,7 +225,7 @@ public static partial class Helpers
 	public static void DrawAbilitysGUI(TriggerCardBattleSequenceWindow window, Action<Ability> callback)
 	{
 		m_selectedAbility = callback;
-		ButtonListPopup.OnGUI(window, "Select Ability", "Select Ability", GetAllAbilitys, OnChoseAbilityButtonCallback);
+		ButtonListPopup.OnGUI<ButtonListPopup>(window, "Select Ability", "Select Ability", GetAllAbilitys, OnChoseAbilityButtonCallback);
 	}
 
 	private static void OnChoseAbilityButtonCallback(int chosenIndex, string chosenValue, string metaData)
@@ -341,19 +341,11 @@ public static partial class Helpers
 
 	public static DeckInfo CurrentDeck()
 	{
-		switch (GetCurrentSavedAct())
+/*		switch (GetCurrentSavedAct())
 		{
-			case Acts.Act2:
-				return SaveData.Data.deck;
-
-			case Acts.GrimoraAct:
-				if (GrimoraModHelpers.GrimoraModIsActive())
-					return GrimoraModHelpers.GetRunState().playerDeck;
-				break;
-
 			case Acts.Unknown:
 				return null;
-        }
+        }*/
 
 		return SaveManager.SaveFile.CurrentDeck;
 	}
@@ -411,6 +403,21 @@ public static partial class Helpers
         style.onActive.background = style.active.background;
         style.onFocused.background = style.active.background;
         style.normal.textColor = Color.black;
+        return style;
+    }
+    public static GUIStyle EnabledButtonStyle()
+    {
+        GUIStyle style = new(GUI.skin.button)
+        {
+            wordWrap = true
+        };
+        style.normal.background = style.active.background;
+        style.hover.background = style.active.background;
+        style.onNormal.background = style.active.background;
+        style.onHover.background = style.active.background;
+        style.onActive.background = style.active.background;
+        style.onFocused.background = style.active.background;
+        style.normal.textColor = Color.white;
         return style;
     }
     public static GUIStyle HeaderLabelStyle()

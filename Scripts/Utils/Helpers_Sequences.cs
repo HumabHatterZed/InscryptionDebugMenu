@@ -1,6 +1,8 @@
 ﻿using System.Reflection;
 using BepInEx;
 using BepInEx.Bootstrap;
+using DebugMenu.Scripts.Acts;
+using DebugMenu.Scripts.Grimora;
 using DebugMenu.Scripts.Sequences;
 using DiskCardGame;
 using InscryptionAPI;
@@ -8,29 +10,32 @@ using InscryptionAPI.Nodes;
 using UnityEngine;
 
 namespace DebugMenu.Scripts.Utils;
-
+// card choices, card battles
 public static partial class Helpers
 {
-	public static List<ABaseTriggerSequences> Sequences
+	public static List<BaseTriggerSequence> CurrentSequences
 	{
 		get
 		{
-			if (m_sequences == null)
-			{
-				m_sequences = GetAllSequences();
-			}
-
-			return m_sequences;
+            c_sequences ??= GetCurrentSequences();
+            return c_sequences;
 		}
 	}
+    public static List<BaseTriggerSequence> AllSequences
+    {
+        get
+        {
+            m_sequences ??= GetAllSequences();
+            return m_sequences;
+        }
+    }
 
-	private static List<ABaseTriggerSequences> m_sequences = null;
-
-	private static List<ABaseTriggerSequences> GetAllSequences()
+    private static List<BaseTriggerSequence> c_sequences = null;
+    private static List<BaseTriggerSequence> m_sequences = null;
+	private static List<BaseTriggerSequence> GetAllSequences()
 	{
-		List<ABaseTriggerSequences> list = new();
+		List<BaseTriggerSequence> list = new();
 
-		// get all types that override ForceTriggerSequences
 		Assembly[] assemblies = AppDomain.CurrentDomain.GetAssemblies();
 		Dictionary<Assembly, List<Type>> nodeTypes = new();
 		Dictionary<Assembly, Type> assemblyToPluginType = new();
@@ -39,15 +44,13 @@ public static partial class Helpers
 			foreach (Type type in a.GetTypes())
 			{
 				if (type.IsAbstract)
-				{
 					continue;
-				}
 
-				if (type.IsSubclassOf(typeof(ABaseTriggerSequences)))
+				if (type.IsSubclassOf(typeof(BaseTriggerSequence)))
 				{
-					if (type != typeof(StubSequence) && type != typeof(APIModdedSequence) && type != typeof(ModdedStubSequence))
+					if (type != typeof(APIModdedSequence) && !type.IsAssignableFrom(typeof(SimpleStubSequence)))
 					{
-						ABaseTriggerSequences sequence = (ABaseTriggerSequences)Activator.CreateInstance(type);
+						BaseTriggerSequence sequence = (BaseTriggerSequence)Activator.CreateInstance(type);
 						list.Add(sequence);
 					}
 				}
@@ -75,12 +78,10 @@ public static partial class Helpers
 			foreach (Type type in pair.Value)
 			{
 				bool hasOverride = false;
-				foreach (ABaseTriggerSequences sequence in list)
+				foreach (BaseTriggerSequence sequence in list)
 				{
 					if (sequence is not SimpleTriggerSequences simpleTriggerSequences)
-					{
 						continue;
-					}
 
 					if (simpleTriggerSequences.NodeDataType == type)
 					{
@@ -90,17 +91,13 @@ public static partial class Helpers
 				}
 
 				if (hasOverride)
-				{
 					continue;
-				}
 
 				if (assemblyToPluginType.TryGetValue(pair.Key, out Type pluginType))
 				{
-					// A mod added this node type
-					// Get the plugin and find their guid
-					// Then add it to the list
+					// A mod added this node type; get the plugin and find their GUID, then add it to the list
 					BaseUnityPlugin plugin = (BaseUnityPlugin)Plugin.Instance.GetComponent(pluginType);
-					ModdedStubSequence sequence = new()
+					SimpleStubSequence sequence = new()
 					{
 						ModGUID = plugin.Info.Metadata.GUID,
 						type = type,
@@ -111,12 +108,11 @@ public static partial class Helpers
 				else
 				{
 					// This is a vanilla node type
-					StubSequence sequence = new()
+					SimpleStubSequence sequence = new()
 					{
+						ModGUID = null,
 						type = type,
-						gameState = type.IsAssignableFrom(typeof(CardBattleNodeData))
-						? GameState.CardBattle
-						: GameState.SpecialCardSequence
+						gameState = type.IsAssignableFrom(typeof(CardBattleNodeData)) ? GameState.CardBattle : GameState.SpecialCardSequence
 					};
 					list.Add(sequence);
 				}
@@ -126,55 +122,65 @@ public static partial class Helpers
 		foreach (NewNodeManager.FullNode addedNode in NewNodeManager.NewNodes)
 		{
 			if (addedNode == null)
-			{
 				continue;
-			}
 
 			APIModdedSequence sequence = new()
 			{
+				ModGUID = addedNode.guid.IsNullOrWhiteSpace() ? "no guid" : addedNode.guid,
 				CustomNodeData = addedNode
 			};
 			list.Add(sequence);
 		}
 
 		list.Sort(SortSequences);
-
 		return list;
 	}
 
-	private static int SortSequences(ABaseTriggerSequences a, ABaseTriggerSequences b)
+	private static int SortSequences(BaseTriggerSequence a, BaseTriggerSequence b)
 	{
 		// Sort so we have this ordering
-		// Vanilla sigils first
-		// - sort by button name
-		// Modded sigils second
-		// - sort by GUID
-		// - sort by button name
-
-		// sort so types that are not StubModdedSequence are first then sort by ButtonName
-		if (a is IModdedSequence aModded)
+        // 1. Vanilla sequences
+        // - a. sort by ButtonName
+        // 2. Modded sigils
+        // - a. sort by GUID
+        // - b. sort by ButtonName
+        if (!a.ModGUID.IsNullOrWhiteSpace())
 		{
-			if (b is IModdedSequence bModded)
+			if (!b.ModGUID.IsNullOrWhiteSpace())
 			{
-				int sortbyGUID = String.Compare(aModded.ModGUID, bModded.ModGUID, StringComparison.Ordinal);
+                int sortbyGUID = String.Compare(a.ModGUID, b.ModGUID, StringComparison.Ordinal);
 				if (sortbyGUID != 0)
-				{
 					return sortbyGUID;
-				}
-
-				int sortByButtonName = String.Compare(a.ButtonName, b.ButtonName, StringComparison.Ordinal);
-				return sortByButtonName;
+                
+                int sortByButtonName = String.Compare(a.SequenceName, b.SequenceName, StringComparison.Ordinal); // same GUID
+                return sortByButtonName;
 			}
-
 			return 1;
 		}
 
-		if (b is IModdedSequence)
-		{
+		if (!b.ModGUID.IsNullOrWhiteSpace())
 			return -1;
-		}
 
-		// Vanilla sigils - sort by button name
-		return String.Compare(a.ButtonName, b.ButtonName, StringComparison.Ordinal);
+        // Vanilla sequence - sort by ButtonName
+        return String.Compare(a.SequenceName, b.SequenceName, StringComparison.Ordinal);
+	}
+
+	private static List<BaseTriggerSequence> GetCurrentSequences()
+	{
+		List<BaseTriggerSequence> sequences = new(AllSequences);
+        if (SaveManager.SaveFile.IsGrimora && GrimoraModHelper.Enabled)
+		{
+            BaseTriggerSequence rand = sequences.Find(x => x.SequenceName == "3 Random Choice");
+            BaseTriggerSequence card = sequences.Find(x => x.SequenceName == "Card Battle");
+            BaseTriggerSequence boss = sequences.Find(x => x.SequenceName == "Boss Battle");
+            BaseTriggerSequence rare = sequences.Find(x => x.SequenceName == "Choose Rare Card");
+			List<BaseTriggerSequence> grimoraSeq = new()
+			{
+				rand, card, boss, rare
+			};
+			grimoraSeq.AddRange(sequences.FindAll(x => !string.IsNullOrEmpty(x.ModGUID)));
+			return grimoraSeq;
+        }
+		return AllSequences;
 	}
 }

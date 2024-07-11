@@ -62,7 +62,7 @@ public class HotkeysPopup : BaseWindow
 					}
 				}
 
-				if (ButtonListPopup.OnGUI(this, hotkey.FunctionID, "Change Hotkey Function", GetListsOfAllFunctions,
+				if (ButtonListPopup.OnGUI<ButtonListPopup>(this, hotkey.FunctionID, "Change Hotkey Function", GetListsOfAllFunctions,
 					    OnChoseButtonCallback, i.ToString()))
 				{
 					adjustingHotkeyFunction = hotkey;

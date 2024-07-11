@@ -175,8 +175,7 @@ public class AbilityInfoPopup : BaseWindow
             else
             {
                 abilitiesToShow = abilitiesToShow.FindAll((AbilityInfo x) =>
-                x.name.ContainsText(filterText, caseSensitive: false)
-                || x.rulebookName.ContainsText(filterText, caseSensitive: false));
+                x.rulebookName.ContainsText(filterText, caseSensitive: false) || (AbilityManager.AllAbilities.Find(y => y.Info == x)?.AbilityBehavior.Name.ContainsText(filterText, caseSensitive: false)).GetValueOrDefault());
             }
         }
         abilitiesToShow = abilitiesToShow.FindAll((AbilityInfo x) =>
