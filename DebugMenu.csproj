@@ -1,8 +1,9 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
         <TargetFramework>netstandard2.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
+        <Version>1.4.0</Version>
         <Nullable>disable</Nullable>
         <IsPackable>false</IsPackable>
         <LangVersion>latest</LangVersion>
@@ -15,6 +16,9 @@
     <ItemGroup>
       <None Remove="InscryptionAPI.dll" />
     </ItemGroup>
+  <ItemGroup>
+    <None Remove="GrimoraMod.dll" />
+  </ItemGroup>
 
     <ItemGroup>
         <PackageReference Include="BepInEx.Analyzers" Version="1.0.8">
@@ -31,6 +35,9 @@
     <ItemGroup>
       <Reference Include="InscryptionAPI" Private="false">
         <HintPath>InscryptionAPI.dll</HintPath>
+      </Reference>
+      <Reference Include="GrimoraMod" Private="false">
+        <HintPath>GrimoraMod.dll</HintPath>
       </Reference>
     </ItemGroup>
 

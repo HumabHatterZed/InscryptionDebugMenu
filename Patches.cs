@@ -14,6 +14,16 @@ using UnityEngine;
 
 namespace DebugMenu;
 
+[HarmonyPatch(typeof(SpecialNodeHandler), nameof(SpecialNodeHandler.StartSpecialNodeSequence), new Type[] { typeof(SpecialNodeData) })]
+internal class SpecialNodeHandler_StartSpecialNodeSequence
+{
+    private static bool Prefix(SpecialNodeData nodeData)
+    {
+        Helpers.LastSpecialNodeData = nodeData;
+        return true;
+    }
+}
+
 [HarmonyPatch(typeof(DisclaimerScreen), "BetaScreensSequence")]
 internal class Skip_Disclaimer
 {
@@ -183,7 +193,7 @@ internal class DisableDialogue_IEnumerator_Patch
 
     private static IEnumerator Postfix(IEnumerator enumerator)
     {
-        if (Configs.DisableAllInput)
+        if (Configs.DisableDialogue)
         {
             Singleton<InteractionCursor>.Instance.InteractionDisabled = false;
             yield break;
@@ -231,7 +241,7 @@ internal class DisableDialogue_Patch
         yield return AccessTools.Method(typeof(TextDisplayer), nameof(TextDisplayer.ShowMessage));
     }
 
-    private static bool Prefix() => !Configs.DisableAllInput;
+    private static bool Prefix() => !Configs.DisableDialogue;
 }
 
 [HarmonyPatch]

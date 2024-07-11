@@ -1,5 +1,26 @@
 # Changelog
 
+## 1.4.0
+### General
+- Fixed the 'Draw Tutor' button being clickable while Tutor sequence is still active
+- Added 'Hide Mod GUIDs' toggle and associated config for the 'Trigger Sequence' menu
+- Deck Editor: ability search now compares against rulebook name and AbilityBehaviour.Name
+
+### Deck Editor
+- Fixed Force Portrait buttons changing size
+- Fixed additional Force Portrait buttons appearing when they shouldn't
+- Ability search field will now compare against an ability's rulebook and either its AbilityBehaviour.Name or enum
+
+### Grimora
+- Disabled 'Force Emission' button
+- Enabled adding/removing currency
+- GrimoraMod: Added debug menus and functionality special sequences
+- GrimoraMod: Added debug functionality for Hammer
+- GrimoraMod: Removed broken vanilla sequences from 'Trigger Sequence' menu
+
+### Act 3
+- P03 KCM: Enabled buttons for adding/removing Bones
+
 ## 1.3.0
 ### General
 - Fixed 'Reload Act' and 'Restart Act' buttons' functionality being reversed

@@ -15,8 +15,8 @@ public static class Configs
         OneAndThreeQuarters,
         Double
     }
-	public static bool DisableAllInput
-	{
+	public static bool DisableDialogue
+    {
 		get => m_disableDialogue.Value;
 		set
 		{
@@ -91,6 +91,17 @@ public static class Configs
         }
     }
 
+    public static bool HideModGUIDs
+    {
+        get => m_hideGuids.Value;
+        set
+        {
+            m_hideGuids.Value = value;
+            Plugin.Instance.Config.Save();
+        }
+    }
+
+    public static ConfigEntry<bool> m_hideGuids = Bind("General", "Hide Mod GUIDs", false, "Should Mod GUIDs be hidden in the Trigger Sequence menu?");
     public static ConfigEntry<bool> m_disableDialogue = Bind("General", "Disable Dialogue", false, "Should all dialogue be disabled?");
     public static ConfigEntry<bool> m_disablePlayerDamage = Bind("General", "Disable Player Damage", false, "Should the player be immune to direct damage?");
     public static ConfigEntry<bool> m_disableOpponentDamage = Bind("General", "Disable Opponent Damage", false, "Should the opponent be immune to direct damage?");

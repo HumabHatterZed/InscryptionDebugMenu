@@ -1,7 +1,8 @@
 using System.Reflection;
 using BepInEx;
 using BepInEx.Logging;
-using DebugMenu.Scripts;
+using DebugMenu.Scripts.Act3;
+using DebugMenu.Scripts.Grimora;
 using DebugMenu.Scripts.Hotkeys;
 using DebugMenu.Scripts.Popups;
 using HarmonyLib;
@@ -12,16 +13,19 @@ namespace DebugMenu
 {
     [BepInPlugin(PluginGuid, PluginName, PluginVersion)]
     [BepInDependency("cyantist.inscryption.api", BepInDependency.DependencyFlags.HardDependency)]
+    [BepInDependency("arackulele.inscryption.grimoramod", BepInDependency.DependencyFlags.SoftDependency)]
+    [BepInDependency("zorro.inscryption.infiniscryption.p03kayceerun", BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {
 	    public const string PluginGuid = "jamesgames.inscryption.debugmenu";
 	    public const string PluginName = "Debug Menu";
-	    public const string PluginVersion = "1.3.0";
+	    public const string PluginVersion = "1.4.0";
 
 	    public static Plugin Instance;
 	    public static ManualLogSource Log;
 	    public static HotkeyController Hotkeys;
-	    
+		internal static Harmony HarmonyInstance;
+
 	    public static string PluginDirectory;
 	    public static float StartingFixedDeltaTime;
 
@@ -29,8 +33,8 @@ namespace DebugMenu
 	    
 	    private GameObject blockerParent = null;
 	    private Canvas blockerParentCanvas = null;
-	    private List<WindowBlocker> activeRectTransforms = new List<WindowBlocker>();
-	    private List<WindowBlocker> rectTransformPool = new List<WindowBlocker>();
+	    private List<WindowBlocker> activeRectTransforms = new();
+	    private List<WindowBlocker> rectTransformPool = new();
 
         private void Awake()
         {
@@ -38,19 +42,32 @@ namespace DebugMenu
 	        Log = Logger;
 	        StartingFixedDeltaTime = Time.fixedDeltaTime;
 	        Hotkeys = new HotkeyController();
-	        
-            PluginDirectory = this.Info.Location.Replace("DebugMenu.dll", "");
 
-            blockerParent = new("DebugMenuBlocker");
-            blockerParent.layer = LayerMask.NameToLayer("UI");
+            HarmonyInstance = new(PluginGuid);
+            PluginDirectory = this.Info.Location.Replace("DebugMenu.dll", "");
+            blockerParent = new("DebugMenuBlocker")
+            {
+                layer = LayerMask.NameToLayer("UI")
+            };
             blockerParentCanvas = blockerParent.AddComponent<Canvas>();
             blockerParentCanvas.renderMode = RenderMode.ScreenSpaceOverlay;
             blockerParentCanvas.sortingOrder = 32767;
             blockerParent.AddComponent<CanvasScaler>();
             blockerParent.AddComponent<GraphicRaycaster>();
             DontDestroyOnLoad(blockerParent);
-            
-            new Harmony(PluginGuid).PatchAll();
+
+            HarmonyInstance.PatchAll(Assembly.GetExecutingAssembly());
+
+			if (GrimoraModHelper.Enabled)
+			{
+				Log.LogDebug("Patching Grimora Mod");
+				GrimoraModHelper.PatchGrimoraMod();
+			}
+            if (P03ModHelper.Enabled)
+            {
+                Log.LogDebug("Patching P03 Kaycee's Mod");
+				P03ModHelper.PatchP03Mod();
+            }
 
             // Get all types of BaseWindow, instntiate them and add them to allwindows
             Type[] types = Assembly.GetExecutingAssembly().GetTypes();
