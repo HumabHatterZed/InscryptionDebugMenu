@@ -22,13 +22,12 @@ public class Act3CardBattleSequence : BaseCardBattleSequence
 		MapNodeManager mapNodeManager = Singleton<MapNodeManager>.m_Instance;
 		if (mapNodeManager == null)
 			return;
-
+        Window.Label($"{TurnManager.Instance.Opponent.GetType()}\nBlueprint: {TurnManager.Instance.Opponent.Blueprint.name}");
         MapNode nodeWithId = mapNodeManager.GetNodeWithId(RunState.Run.currentNodeId);
-
         if (nodeWithId?.Data is CardBattleNodeData cardBattleNodeData)
 		{
-            Window.Label($"Difficulty: {cardBattleNodeData.difficulty} + {RunState.Run.DifficultyModifier}");
-            Window.Label($"Turn Number: {TurnManager.Instance.TurnNumber}");
+            Window.Label($"Difficulty: {cardBattleNodeData.difficulty + RunState.Run.DifficultyModifier} ({cardBattleNodeData.difficulty} + {RunState.Run.DifficultyModifier})" +
+                $"\nTurn Number: {TurnManager.Instance.TurnNumber}");
         }
 
         base.OnGUI();
@@ -36,10 +35,12 @@ public class Act3CardBattleSequence : BaseCardBattleSequence
 
 	public override void AddBones(int amount)
 	{
-		
+		if (P03ModHelper.Enabled)
+			base.AddBones(amount);
 	}
 	public override void RemoveBones(int amount)
 	{
-		
-	}
+        if (P03ModHelper.Enabled)
+			base.RemoveBones(amount);
+    }
 }
