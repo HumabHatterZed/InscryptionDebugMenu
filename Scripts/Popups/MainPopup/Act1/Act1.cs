@@ -37,23 +37,8 @@ public class Act1 : BaseAct
             RunState.Run.playerLives = RunState.Run.maxPlayerLives;
 			SaveManager.SaveToFile(false);
         }
-        Window.LabelHeader("Currency: " + RunState.Run.currency);
 
-        using (Window.HorizontalScope(4))
-		{
-            if (Window.Button("+1"))
-                RunState.Run.currency ++;
-
-            if (Window.Button("-1"))
-                RunState.Run.currency = Mathf.Max(0, RunState.Run.currency - 1);
-
-            if (Window.Button("+5"))
-				RunState.Run.currency += 5;
-
-			if (Window.Button("-5"))
-				RunState.Run.currency = Mathf.Max(0, RunState.Run.currency - 5);
-        }
-
+		DrawCurrencyGUI();
         DrawItemsGUI();
         Window.StartNewColumn();
 
@@ -78,27 +63,23 @@ public class Act1 : BaseAct
 				m_cardBattleSequence.OnGUI();
 				break;
 			case GameState.Map:
-				// Show map related buttons
 				OnGUIMap();
 				break;
 			case GameState.FirstPerson3D:
 				break;
 			case GameState.SpecialCardSequence:
-				SpecialNodeData nodeWithId = Helpers.LastSpecialNodeData;
-				Type nodeType = nodeWithId.GetType();
+				Type nodeType = Helpers.LastSpecialNodeData.GetType();
 				if (nodeType == typeof(CardChoicesNodeData))
 				{
 					OnGUICardChoiceNodeSequence();
 				}
 				else
 				{
-					Window.Label("Unhandled node type");
-					Window.Label(nodeType.FullName);
+					Window.Label("<b>Unhandled NodeData type:</b>\n" + nodeType.FullName);
 				}
 				break;
 			default:
-				Window.Label("Unhandled GameFlowState:");
-				Window.Label(gameFlowManager.CurrentGameState.ToString());
+				Window.Label("<b>Unhandled GameFlowState:</b>" + gameFlowManager.CurrentGameState.ToString());
 				break;
 		}
 	}

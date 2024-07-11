@@ -3,6 +3,7 @@ using DebugMenu.Scripts.Popups;
 using DebugMenu.Scripts.Sequences;
 using DebugMenu.Scripts.Utils;
 using DiskCardGame;
+using UnityEngine;
 
 namespace DebugMenu.Scripts.Acts;
 
@@ -35,6 +36,24 @@ public abstract class BaseAct
     public void Warning(string log) => Logger.LogWarning($"[{GetType().Name}] {log}");
     public void Error(string log) => Logger.LogError($"[{GetType().Name}] {log}");
 
+    public void DrawCurrencyGUI()
+    {
+        Window.LabelHeader("Currency: " + RunState.Run.currency);
+        using (Window.HorizontalScope(4))
+        {
+            if (Window.Button("+1"))
+                RunState.Run.currency++;
+
+            if (Window.Button("-1"))
+                RunState.Run.currency = Mathf.Max(0, RunState.Run.currency - 1);
+
+            if (Window.Button("+5"))
+                RunState.Run.currency += 5;
+
+            if (Window.Button("-5"))
+                RunState.Run.currency = Mathf.Max(0, RunState.Run.currency - 5);
+        }
+    }
     public void DrawItemsGUI()
     {
         Window.LabelHeader("Items");
@@ -47,7 +66,7 @@ public abstract class BaseAct
                 string consumable = i >= items.Count ? null : items[i];
                 string itemRulebookName = Helpers.GetConsumableByName(consumable);
                 string itemName = itemRulebookName ?? (consumable ?? "None");
-                ButtonListPopup.OnGUI(Window, itemName, "Change Item " + (i + 1), GetListsOfAllItems,
+                ButtonListPopup.OnGUI<ButtonListPopup>(Window, itemName, "Change Item " + (i + 1), GetListsOfAllItems,
                     OnChoseButtonCallback, i.ToString());
             }
         }
@@ -77,7 +96,7 @@ public abstract class BaseAct
 
         foreach (ConsumableItemSlot slot in Singleton<ItemsManager>.Instance.consumableSlots)
         {
-            if (slot.Item)
+            if (slot.Item != null)
                 slot.DestroyItem();
         }
 
@@ -104,30 +123,24 @@ public abstract class BaseAct
 
     public void DrawSequencesGUI()
     {
-        ButtonListPopup.OnGUI(Window, "Trigger Sequence", "Trigger Sequence", GetListsOfSequences, OnChoseSequenceButtonCallback);
+        ButtonListPopup.OnGUI<SequenceListPopup>(Window, "Trigger Sequence", "Trigger Sequence", GetListsOfSequences, OnChoseSequenceButtonCallback);
     }
 
     public static void OnChoseSequenceButtonCallback(int chosenIndex, string chosenValue, string metaData)
     {
-        if (chosenIndex < 0 || chosenIndex >= Helpers.Sequences.Count)
-        {
+        if (chosenIndex < 0 || chosenIndex >= Helpers.CurrentSequences.Count)
             return;
-        }
 
-        ABaseTriggerSequences sequence = Helpers.Sequences[chosenIndex];
-        sequence.Sequence();
+        Helpers.CurrentSequences[chosenIndex].Sequence();
     }
 
     private Tuple<List<string>, List<string>> GetListsOfSequences()
     {
-        List<string> names = new(Helpers.Sequences.Count);
-        List<string> values = new(Helpers.Sequences.Count);
-        for (int i = 0; i < Helpers.Sequences.Count; i++)
-        {
-            names.Add(Helpers.Sequences[i].ButtonName);
-            values.Add(Helpers.Sequences[i].ButtonName);
-        }
-
+        List<BaseTriggerSequence> sequences = Helpers.CurrentSequences;
+        List<string> names = new(sequences.Count);
+        List<string> values = new(sequences.Count);
+        names.AddRange(sequences.ConvertAll(x => x.ButtonName));
+        values.AddRange(sequences.ConvertAll(x => x.SequenceName));
         return new Tuple<List<string>, List<string>>(names, values);
     }
 }

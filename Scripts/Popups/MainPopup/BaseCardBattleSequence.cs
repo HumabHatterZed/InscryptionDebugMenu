@@ -22,6 +22,7 @@ public abstract class BaseCardBattleSequence
 
 	protected bool hasSideDeck = true;
 	protected bool hasBones = true;
+	private bool drawingTutorCard = false;
 
 	public BaseCardBattleSequence(DebugWindow window)
 	{
@@ -30,7 +31,7 @@ public abstract class BaseCardBattleSequence
 
     private ButtonDisabledData DisableCardDraw() => new()
     {
-        Disabled = (SaveManager.SaveFile.IsPart2 && !IsGBCBattle()) || (CardDrawPiles?.Deck?.CardsInDeck).GetValueOrDefault() == 0
+        Disabled = (CardDrawPiles?.Deck?.CardsInDeck).GetValueOrDefault() == 0 | (SaveManager.SaveFile.IsPart2 && !IsGBCBattle())
     };
     private ButtonDisabledData DisableSideDraw() => new()
     {
@@ -38,7 +39,7 @@ public abstract class BaseCardBattleSequence
     };
     private ButtonDisabledData DisableTutorDraw() => new()
     {
-        Disabled = (SaveManager.SaveFile.IsPart2 && !IsGBCBattle()) || (CardDrawPiles?.Deck?.CardsInDeck).GetValueOrDefault() == 0
+        Disabled = drawingTutorCard || (CardDrawPiles?.Deck?.CardsInDeck).GetValueOrDefault() == 0 | (SaveManager.SaveFile.IsPart2 && !IsGBCBattle())
     };
 
     public virtual void OnGUI()
@@ -121,15 +122,27 @@ public abstract class BaseCardBattleSequence
 
 	public IEnumerator DrawTutor()
 	{
-		if (Singleton<CardDrawPiles>.Instance.Deck.CardsInDeck > 0)
-		{
-			yield return Singleton<CardDrawPiles>.Instance.Deck.Tutor();
-			if (ViewManager.Instance != null)
-				Singleton<ViewManager>.Instance.Controller.LockState = ViewLockState.Unlocked;
-		}
-	}
+        drawingTutorCard = true;
+        yield return CardDrawPiles.Deck.Tutor();
+        if (ViewManager.Instance != null)
+            Singleton<ViewManager>.Instance.Controller.LockState = ViewLockState.Unlocked;
 
-	private IEnumerator AddEnergyAndIncreaseLimit(int amount)
+        drawingTutorCard = false;
+    }
+    private IEnumerator DrawFromMainDeck()
+    {
+        drawingTutorCard = true;
+        CardDrawPiles3D?.pile.Draw();
+        yield return CardDrawPiles.DrawCardFromDeck();
+        drawingTutorCard = false;
+    }
+    private IEnumerator DrawFromSideDeck()
+    {
+        CardDrawPiles3D.SidePile.Draw();
+        yield return CardDrawPiles3D.DrawFromSidePile();
+    }
+
+    private IEnumerator AddEnergyAndIncreaseLimit(int amount)
 	{
 		if (ResourcesManager.Instance.PlayerEnergy + amount > ResourcesManager.Instance.PlayerMaxEnergy)
 			yield return ResourcesManager.Instance.AddMaxEnergy(amount);
@@ -140,26 +153,22 @@ public abstract class BaseCardBattleSequence
 	{
         if (CardDrawPiles != null)
         {
-            if (CardDrawPiles.Deck.cards.Count > 0)
-            {
-                CardDrawPiles3D?.pile.Draw();
-
-                Plugin.Instance.StartCoroutine(CardDrawPiles.DrawCardFromDeck());
-            }
+            if (CardDrawPiles.Deck.CardsInDeck > 0)
+                Plugin.Instance.StartCoroutine(DrawFromMainDeck());
         }
         else
         {
             Plugin.Log.LogError("Couldn't draw from deck; can't find CardDrawPiles!");
         }
     }
+
 	public virtual void DrawSideDeck()
 	{
         if (CardDrawPiles3D != null)
         {
             if (CardDrawPiles3D.SideDeck.cards.Count > 0)
             {
-                CardDrawPiles3D.SidePile.Draw();
-                Plugin.Instance.StartCoroutine(CardDrawPiles3D.DrawFromSidePile());
+                Plugin.Instance.StartCoroutine(DrawFromSideDeck());
             }
         }
         else

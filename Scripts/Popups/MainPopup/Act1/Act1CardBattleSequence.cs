@@ -20,11 +20,11 @@ public class Act1CardBattleSequence : BaseCardBattleSequence
 	public override void OnGUI()
 	{
 		MapNode nodeWithId =  Singleton<MapNodeManager>.m_Instance.GetNodeWithId(RunState.Run.currentNodeId);
-		if (nodeWithId.Data is CardBattleNodeData cardBattleNodeData)
+        Window.Label($"{TurnManager.Instance.Opponent.GetType()}\nBlueprint: {TurnManager.Instance.Opponent.Blueprint.name}");
+        if (nodeWithId.Data is CardBattleNodeData cardBattleNodeData)
 		{
-			Window.Label($"Difficulty: {cardBattleNodeData.difficulty + RunState.Run.DifficultyModifier} " +
-                $"({cardBattleNodeData.difficulty} + {RunState.Run.DifficultyModifier})" +
-				"\nTurn Number: " + TurnManager.Instance.TurnNumber);
+            Window.Label($"Difficulty: {cardBattleNodeData.difficulty + RunState.Run.DifficultyModifier} ({cardBattleNodeData.difficulty} + {RunState.Run.DifficultyModifier})" +
+				$"\nTurn Number: {TurnManager.Instance.TurnNumber}");
 		}
 
 		base.OnGUI();

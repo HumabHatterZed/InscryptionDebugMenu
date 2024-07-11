@@ -38,7 +38,7 @@ public class Act1MapSequence : BaseMapSequence
         Act.DrawSequencesGUI();
 		
         Window.LabelHeader("<b>Override Region</b>");
-        ButtonListPopup.OnGUI(Window, RegionNameOverride, "Override Region", RegionNameList, static (_, value, _) =>
+        ButtonListPopup.OnGUI<ButtonListPopup>(Window, RegionNameOverride, "Override Region", RegionNameList, static (_, value, _) =>
         {
             RegionNameOverride = value;
         });
