@@ -1,6 +1,7 @@
 ﻿using DiskCardGame;
 using InscryptionAPI.Card;
 using UnityEngine;
+using BepInEx;
 
 namespace DebugMenu.Scripts.Utils;
 
@@ -20,8 +21,13 @@ public static class DrawCardInfo // used for the deck editors
 
 		GUILayout.BeginHorizontal();
 		GUILayout.Label("Card Editor", Helpers.HeaderLabelStyle());
-        GUILayout.Label("(" + cardInfo.name + ")", Helpers.HeaderLabelStyle());
+        GUILayout.Label(cardInfo.DisplayedNameLocalized + " (" + cardInfo.name + ")", Helpers.HeaderLabelStyle());
         GUILayout.EndHorizontal();
+
+        if (boardEditor ? HandleNameReplacement(ref boardNameReplacementField, cardInfo, deckInfo) : HandleNameReplacement(ref nameReplacementField, cardInfo, deckInfo))
+        {
+            return Result.Altered;
+        }
 
         GUILayout.BeginHorizontal();
         if (HasModFromCardMerge(cardInfo, playableCard)) // clear card merge data (remove patches)
@@ -209,6 +215,37 @@ public static class DrawCardInfo // used for the deck editors
 
         return Result.None;
 	}
+
+    private static bool HandleNameReplacement(ref string nameReplacementFieldRef, CardInfo cardInfo, DeckInfo deckInfo = null)
+    {
+        bool ret = false;
+
+        GUILayout.BeginHorizontal();
+
+        nameReplacementFieldRef = GUILayout.TextField(nameReplacementFieldRef);
+        if (GUILayout.Button("Set Name Replacement"))
+        {
+            CardModificationInfo mod = new() { nameReplacement = nameReplacementFieldRef };
+
+            CardModificationInfo oldMod = cardInfo.Mods.Find((a) => !a.nameReplacement.IsNullOrWhiteSpace());
+            if (oldMod != null) cardInfo.Mods.Remove(oldMod);
+
+            if (deckInfo != null)
+            {
+                deckInfo.ModifyCard(cardInfo, mod);
+                SaveManager.SaveToFile(false);
+            }
+            else
+            {
+                cardInfo.Mods.Add(mod);
+            }
+            ret = true;
+        }
+
+        GUILayout.EndHorizontal();
+
+        return ret;
+    }
 
     private static bool HandleForcePortrait(CardInfo cardInfo, DeckInfo deckInfo)
     {
@@ -1154,6 +1191,7 @@ public static class DrawCardInfo // used for the deck editors
     private const int sigilsPerRow = 3;
     private const int sigilsPerPage = 9;
 
+    private static string nameReplacementField = "";
     private static int selectedTab = 0;
     private static int abilityManagerIndex = 0;
     private static string abilitySearch = "";
@@ -1168,6 +1206,7 @@ public static class DrawCardInfo // used for the deck editors
 
     // these exist so the two menus don't interact with each other
     // yes, it's a straight copy-paste job, no I don't care
+    private static string boardNameReplacementField = "";
     private static int boardSelectedTab = 0;
     private static int boardAbilityManagerIndex = 0;
     private static string boardAbilitySearch = "";
