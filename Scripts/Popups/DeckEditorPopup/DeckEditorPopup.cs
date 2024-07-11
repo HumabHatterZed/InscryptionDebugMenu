@@ -248,7 +248,7 @@ public class DeckEditorPopup : BaseWindow
 		deckCardArray = new string[CurrentDeck.Cards.Count];
 		for (int i = 0; i < CurrentDeck.Cards.Count; i++)
 		{
-			deckCardArray[i] = CurrentDeck.Cards[i]?.displayedName ?? "Card not found!";
+			deckCardArray[i] = CurrentDeck.Cards[i]?.DisplayedNameLocalized ?? "Card not found!";
 		}
 
 		if (!adding)
