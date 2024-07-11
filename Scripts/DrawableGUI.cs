@@ -18,6 +18,10 @@ public abstract class DrawableGUI
 			Disabled = true;
 			Reason = reason;
 		}
+		public ButtonDisabledData(Func<bool> func)
+		{
+			Disabled = func.Invoke();
+		}
 	}
 
 	public struct LayoutScope : IDisposable

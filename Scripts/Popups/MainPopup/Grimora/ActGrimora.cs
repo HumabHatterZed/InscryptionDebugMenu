@@ -1,7 +1,10 @@
 ﻿using BepInEx.Logging;
 using DebugMenu.Scripts.Acts;
+using DebugMenu.Scripts.Sequences;
 using DebugMenu.Scripts.Utils;
 using DiskCardGame;
+using System.Collections;
+using System.Reflection;
 using UnityEngine;
 
 namespace DebugMenu.Scripts.Grimora;
@@ -22,14 +25,14 @@ public class ActGrimora : BaseAct
 	public override void OnGUI()
 	{
 		Window.LabelHeader("Grimora Act");
-
 		if (RunState.Run.currentNodeId > 0 && Singleton<MapNodeManager>.m_Instance != null)
 		{
 			MapNode nodeWithId = Singleton<MapNodeManager>.Instance.GetNodeWithId(RunState.Run.currentNodeId);
 			Window.Label("Current Node: " + RunState.Run.currentNodeId + " = " + nodeWithId, new(0, 120));
 		}
-		
-		DrawItemsGUI();
+
+        DrawCurrencyGUI();
+        DrawItemsGUI();
 		
 		Window.StartNewColumn();
 		OnGUICurrentNode();
@@ -46,38 +49,50 @@ public class ActGrimora : BaseAct
 		if (gameFlowManager == null)
 			return;
 
-		Window.LabelHeader(gameFlowManager.CurrentGameState.ToString());
-		switch (gameFlowManager.CurrentGameState)
+        Window.LabelHeader(gameFlowManager.CurrentGameState.ToString());
+        switch (gameFlowManager.CurrentGameState)
 		{
 			case GameState.CardBattle:
-				m_cardBattleSequence.OnGUI();
+                m_cardBattleSequence.OnGUI();
 				break;
 			case GameState.Map:
-				// Show map related buttons
-				m_mapSequence.OnGUI();
+                m_mapSequence.OnGUI();
 				break;
 			case GameState.FirstPerson3D:
-				break;
+                break;
 			case GameState.SpecialCardSequence:
-				SpecialNodeData nodeWithId = Helpers.LastSpecialNodeData;
-				Type nodeType = nodeWithId.GetType();
+				Type nodeType = Helpers.LastSpecialNodeData.GetType();
+				Window.Label($"<b>{nodeType.Name}</b>");
 				if (nodeType == typeof(CardChoicesNodeData))
 				{
-					OnGUICardChoiceNodeSequence();
-				}
-				else if (nodeType.ToString().ToLower().Contains("electricchair"))
-				{
-					OnGUIElectricChairNodeSequence();
-				}
-				else
-				{
-					Window.Label("Unhandled node type:");
-					Window.Label(nodeType.ToString());
-				}
-				break;
+                    OnGUICardChoiceNodeSequence();
+					return;
+                }
+                if (GrimoraModHelper.Enabled)
+                {
+					switch (nodeType.Name.Replace("NodeData", ""))
+					{
+						case "BoneyardBurial":
+                            GrimoraModHelper.OnGUIBoneyardBurial(this.Window);
+							return;
+						case "CardMerge":
+
+							return;
+                        case "ElectricChair":
+                            GrimoraModHelper.OnGUIElectricChairNodeSequence(this.Window);
+                            return;
+                        case "GoatEye":
+							GrimoraModHelper.OnGUIGoatEye(this.Window);
+                            return;
+                        case "GravebardCamp":
+                            GrimoraModHelper.OnGUIGravebardCamp(this.Window);
+                            return;
+                    }
+                }
+                Window.Label($"Unhandled NodeData type: {nodeType.Name}");
+                break;
 			default:
-				Window.Label("Unhandled GameFlowState:");
-				Window.Label(gameFlowManager.CurrentGameState.ToString());
+				Window.Label($"Unhandled GameFlowState: {gameFlowManager.CurrentGameState}");
 				break;
 		}
 	}
@@ -90,11 +105,6 @@ public class ActGrimora : BaseAct
 		{
 			sequencer.OnRerollChoices();
 		}
-	}
-
-	private void OnGUIElectricChairNodeSequence()
-	{
-		Window.Label("TODO:");
 	}
 
 	public override void Restart()
