@@ -13,14 +13,14 @@ namespace DebugMenu.Scripts.Utils;
 // card choices, card battles
 public static partial class Helpers
 {
-	public static List<BaseTriggerSequence> CurrentSequences
+	public static List<BaseTriggerSequence> ShownSequences => Configs.ShowAllSequences ? AllSequences : CurrentActSequences;
+	public static List<BaseTriggerSequence> CurrentActSequences => GetCurrentSavedAct() switch
 	{
-		get
-		{
-            c_sequences ??= GetCurrentSequences();
-            return c_sequences;
-		}
-	}
+		Acts.Act1 => GetAct1Sequences(),
+		Acts.Act3 => GetAct3Sequences(),
+		Acts.GrimoraAct => GetGrimoraSequences(),
+		_ => AllSequences
+	};
     public static List<BaseTriggerSequence> AllSequences
     {
         get
@@ -131,8 +131,9 @@ public static partial class Helpers
 			};
 			list.Add(sequence);
 		}
-
-		list.Sort(SortSequences);
+		list.Remove(list.Find(x => x.SequenceName == "Special"));
+        list.Remove(list.Find(x => x.SequenceName == "Custom Special"));
+        list.Sort(SortSequences);
 		return list;
 	}
 
@@ -165,22 +166,69 @@ public static partial class Helpers
         return String.Compare(a.SequenceName, b.SequenceName, StringComparison.Ordinal);
 	}
 
-	private static List<BaseTriggerSequence> GetCurrentSequences()
-	{
-		List<BaseTriggerSequence> sequences = new(AllSequences);
-        if (SaveManager.SaveFile.IsGrimora && GrimoraModHelper.Enabled)
-		{
-            BaseTriggerSequence rand = sequences.Find(x => x.SequenceName == "3 Random Choice");
-            BaseTriggerSequence card = sequences.Find(x => x.SequenceName == "Card Battle");
-            BaseTriggerSequence boss = sequences.Find(x => x.SequenceName == "Boss Battle");
-            BaseTriggerSequence rare = sequences.Find(x => x.SequenceName == "Choose Rare Card");
-			List<BaseTriggerSequence> grimoraSeq = new()
-			{
-				rand, card, boss, rare
-			};
-			grimoraSeq.AddRange(sequences.FindAll(x => !string.IsNullOrEmpty(x.ModGUID)));
-			return grimoraSeq;
+    private static List<BaseTriggerSequence> m_act1Sequences = null;
+    private static List<BaseTriggerSequence> m_act3Sequences = null;
+    private static List<BaseTriggerSequence> m_grimoraSequences = null;
+
+    private static List<BaseTriggerSequence> GetAct1Sequences()
+    {
+		// add card ability, attach gem, build a card, card bundle, creature transformer, modify side, overclock card, recycle card, unlock part3
+        if (m_act1Sequences == null)
+        {
+            List<BaseTriggerSequence> sequences = new(AllSequences);
+            sequences.Remove(sequences.Find(x => x.SequenceName == "Add Card Ability"));
+            sequences.Remove(sequences.Find(x => x.SequenceName == "Attach Gem"));
+            sequences.Remove(sequences.Find(x => x.SequenceName == "Card Bundle Choices"));
+            sequences.Remove(sequences.Find(x => x.SequenceName == "Create Transformer"));
+            sequences.Remove(sequences.Find(x => x.SequenceName == "Modify Side Deck"));
+            sequences.Remove(sequences.Find(x => x.SequenceName == "Overclock Card"));
+            sequences.Remove(sequences.Find(x => x.SequenceName == "Recycle Card"));
+            sequences.Remove(sequences.Find(x => x.SequenceName == "Special"));
+            sequences.Remove(sequences.Find(x => x.SequenceName == "Unlock Part3 Item"));
+            m_act1Sequences = sequences;
         }
-		return AllSequences;
-	}
+        return m_act1Sequences;
+    }
+    private static List<BaseTriggerSequence> GetAct3Sequences()
+    {
+        if (m_act3Sequences == null)
+        {
+            List<BaseTriggerSequence> sequences = new(AllSequences);
+            List<BaseTriggerSequence> currentSeq = new()
+            {
+                sequences.Find(x => x.SequenceName == "3 Deathcard Choice"),
+                sequences.Find(x => x.SequenceName == "3 Random Choice"),
+                sequences.Find(x => x.SequenceName == "Add Card Ability"),
+                sequences.Find(x => x.SequenceName == "Attach Gem"),
+                sequences.Find(x => x.SequenceName == "Card Battle"),
+                sequences.Find(x => x.SequenceName == "Boss Battle"),
+                sequences.Find(x => x.SequenceName == "Create Transformer"),
+                sequences.Find(x => x.SequenceName == "Modify Side Deck"),
+                sequences.Find(x => x.SequenceName == "Overclock Card"),
+                sequences.Find(x => x.SequenceName == "Recycle Card"),
+                sequences.Find(x => x.SequenceName == "Trade Cards"),
+                sequences.Find(x => x.SequenceName == "Unlock Part3 Item"),
+            };
+            currentSeq.AddRange(sequences.Where(x => !string.IsNullOrEmpty(x.ModGUID)));
+            m_act3Sequences = currentSeq;
+        }
+        return m_act3Sequences;
+    }
+    private static List<BaseTriggerSequence> GetGrimoraSequences()
+    {
+        if (m_grimoraSequences == null)
+        {
+            List<BaseTriggerSequence> sequences = new(AllSequences);
+            List<BaseTriggerSequence> currentSeq = new()
+            {
+                sequences.Find(x => x.SequenceName == "3 Random Choice"),
+                sequences.Find(x => x.SequenceName == "Card Battle"),
+                sequences.Find(x => x.SequenceName == "Boss Battle"),
+                sequences.Find(x => x.SequenceName == "Choose Rare Card")
+            };
+            currentSeq.AddRange(sequences.Where(x => !string.IsNullOrEmpty(x.ModGUID)));
+            m_grimoraSequences = currentSeq;
+        }
+        return m_grimoraSequences;
+    }
 }

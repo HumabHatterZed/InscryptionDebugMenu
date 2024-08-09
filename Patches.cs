@@ -2,7 +2,9 @@
 using System.Reflection;
 using System.Reflection.Emit;
 using DebugMenu.Scripts.Act1;
+using DebugMenu.Scripts.Act3;
 using DebugMenu.Scripts.All;
+using DebugMenu.Scripts.Grimora;
 using DebugMenu.Scripts.Popups.DeckEditorPopup;
 using DebugMenu.Scripts.Utils;
 using DiskCardGame;
@@ -44,8 +46,16 @@ internal class SaveCardList
     [HarmonyPrefix]
     private static bool SaveCardListPrefix(List<CardInfo> starterDeck)
     {
-        Act1.lastUsedStarterDeck = starterDeck;
-        Plugin.Log.LogInfo("New Starter Deck with " + Act1.lastUsedStarterDeck.Count + " Cards!");
+        if (P03ModHelper.Enabled && P03ModHelper.IsP03Run)
+            Act3.lastUsedStarterDeck = starterDeck;
+
+        else if (GrimoraModHelper.Enabled && SaveFile.IsAscension)
+            ActGrimora.lastUsedStarterDeck = starterDeck;
+
+        else
+            Act1.lastUsedStarterDeck = starterDeck;
+
+        Plugin.Log.LogInfo("New starter deck with " + starterDeck.Count + " cards!");
         return true;
     }
 
@@ -254,8 +264,8 @@ internal class EmissionAndPortraitPatches
             __result = true;
     }
 
-    [HarmonyPostfix, HarmonyPatch(typeof(CardDisplayer3D), nameof(CardDisplayer3D.DisplayInfo))]
-    private static void ForceAlternatePortrait(CardDisplayer3D __instance, CardRenderInfo renderInfo)
+    [HarmonyPostfix, HarmonyPatch(typeof(CardDisplayer), nameof(CardDisplayer.DisplayInfo))]
+    private static void ForceAlternatePortrait(CardDisplayer __instance, CardRenderInfo renderInfo)
     {
         if (__instance == null || renderInfo?.baseInfo == null)
             return;
@@ -263,19 +273,19 @@ internal class EmissionAndPortraitPatches
         List<CardModificationInfo> mods = renderInfo.baseInfo.Mods;
         if (mods.Exists(x => x.singletonId == DrawCardInfo.PortraitMod))
         {
-            __instance.SetPortrait(renderInfo.baseInfo.alternatePortrait);
+            __instance.SetPortrait(SaveManager.SaveFile.IsPart2 ? renderInfo.baseInfo.PixelAlternatePortrait() : renderInfo.baseInfo.alternatePortrait);
         }
         else if (mods.Exists(x => x.singletonId == DrawCardInfo.ShieldPortraitMod))
         {
-            __instance.SetPortrait(renderInfo.baseInfo.BrokenShieldPortrait());
+            __instance.SetPortrait(SaveManager.SaveFile.IsPart2 ? renderInfo.baseInfo.PixelBrokenShieldPortrait() : renderInfo.baseInfo.BrokenShieldPortrait());
         }
         else if (mods.Exists(x => x.singletonId == DrawCardInfo.SacrificePortraitMod))
         {
-            __instance.SetPortrait(renderInfo.baseInfo.SacrificablePortrait());
+            __instance.SetPortrait(SaveManager.SaveFile.IsPart2 ? renderInfo.baseInfo.PixelSacrificablePortrait() : renderInfo.baseInfo.SacrificablePortrait());
         }
         else if (mods.Exists(x => x.singletonId == DrawCardInfo.TrapPortraitMod))
         {
-            __instance.SetPortrait(renderInfo.baseInfo.SteelTrapPortrait());
+            __instance.SetPortrait(SaveManager.SaveFile.IsPart2 ? renderInfo.baseInfo.PixelSteelTrapPortrait() : renderInfo.baseInfo.SteelTrapPortrait());
         }
     }
     [HarmonyPostfix, HarmonyPatch(typeof(PixelCardDisplayer), nameof(PixelCardDisplayer.DisplayInfo))]

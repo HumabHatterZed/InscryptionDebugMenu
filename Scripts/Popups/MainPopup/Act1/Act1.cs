@@ -25,79 +25,60 @@ public class Act1 : BaseAct
 			return;
 
 		Window.LabelHeader("Act 1");
-		
 		if (RunState.Run.currentNodeId > 0)
 		{
             MapNode nodeWithId = mapNodeManager.GetNodeWithId(RunState.Run.currentNodeId);
-            Window.Label("Current Node ID: " + RunState.Run.currentNodeId + "\nCurrent Node: " + nodeWithId?.name, new(0, 120));
-        }
-		if (Window.Button("Replenish Candles"))
-		{
-            Plugin.Instance.StartCoroutine(CandleHolder.Instance.ReplenishFlamesSequence(0f));
-            RunState.Run.playerLives = RunState.Run.maxPlayerLives;
-			SaveManager.SaveToFile(false);
+            Window.Label("Current Node ID: " + RunState.Run.currentNodeId + "\nCurrent Node: " + nodeWithId?.name, new(0, 80f));
         }
 
 		DrawCurrencyGUI();
         DrawItemsGUI();
-        Window.StartNewColumn();
+		Window.Padding();
 
+        if (Window.Button("Replenish Candles"))
+        {
+            Plugin.Instance.StartCoroutine(CandleHolder.Instance.ReplenishFlamesSequence(0f));
+            RunState.Run.playerLives = RunState.Run.maxPlayerLives;
+            SaveManager.SaveToFile(false);
+        }
+
+        Window.StartNewColumn();
         OnGUICurrentNode();
     }
 
-	public override void OnGUIMinimal()
-	{
-		OnGUICurrentNode();
-	}
+    public override bool OnSpecialCardSequence(string nodeDataName)
+    {
+        if (nodeDataName == "CardStatBoost")
+            return true;
 
-	private void OnGUICurrentNode()
-	{
-		GameFlowManager gameFlowManager = Singleton<GameFlowManager>.m_Instance;
-		if (gameFlowManager == null)
-			return;
+        if (nodeDataName == "ChooseEyeball")
+			return true;
 
-		Window.LabelHeader(gameFlowManager.CurrentGameState.ToString());
-		switch (gameFlowManager.CurrentGameState)
-		{
-			case GameState.CardBattle:
-				m_cardBattleSequence.OnGUI();
-				break;
-			case GameState.Map:
-				OnGUIMap();
-				break;
-			case GameState.FirstPerson3D:
-				break;
-			case GameState.SpecialCardSequence:
-				Type nodeType = Helpers.LastSpecialNodeData.GetType();
-				if (nodeType == typeof(CardChoicesNodeData))
-				{
-					OnGUICardChoiceNodeSequence();
-				}
-				else
-				{
-					Window.Label("<b>Unhandled NodeData type:</b>\n" + nodeType.FullName);
-				}
-				break;
-			default:
-				Window.Label("<b>Unhandled GameFlowState:</b>" + gameFlowManager.CurrentGameState.ToString());
-				break;
-		}
-	}
-	
-	private void OnGUICardChoiceNodeSequence()
-	{
-		CardSingleChoicesSequencer sequencer = Singleton<SpecialNodeHandler>.Instance.cardChoiceSequencer;
-		Window.Label("Sequencer: " + sequencer, new(0, 80));
-		if (Window.Button("Reroll choices"))
-			sequencer.OnRerollChoices();
-	}
+        if (nodeDataName == "RemoveCard")
+            return true;
 
-	private void OnGUIMap()
-	{
-		m_mapSequence.OnGUI();
-	}
+        return false;
+    }
+    private void DrawCurrencyGUI()
+    {
+        Window.LabelHeader("Currency: " + RunState.Run.currency);
+        using (Window.HorizontalScope(4))
+        {
+            if (Window.Button("+1"))
+                RunState.Run.currency++;
 
-	public override void Restart()
+            if (Window.Button("-1"))
+                RunState.Run.currency = Mathf.Max(0, RunState.Run.currency - 1);
+
+            if (Window.Button("+5"))
+                RunState.Run.currency += 5;
+
+            if (Window.Button("-5"))
+                RunState.Run.currency = Mathf.Max(0, RunState.Run.currency - 5);
+        }
+    }
+
+    public override void Restart()
 	{
 		if (SaveFile.IsAscension)
 			NewAscensionGame();
@@ -116,7 +97,8 @@ public class Act1 : BaseAct
 		}
 		else
 		{
-			ReloadVanilla();
+			Log("Reloading Vanilla...");
+			base.Reload();
 		}
 	}
 
@@ -126,30 +108,12 @@ public class Act1 : BaseAct
 		SceneLoader.Load("Ascension_Configure");
 		if (lastUsedStarterDeck != null)
 		{
-			Log("New Game! With " + lastUsedStarterDeck.Count + " Cards!");
+			Log("New Ascension run with " + lastUsedStarterDeck.Count + " cards!");
 			AscensionSaveData.Data.NewRun(lastUsedStarterDeck);
 			SaveManager.SaveToFile(saveActiveScene: false);
 			MenuController.LoadGameFromMenu(newGameGBC: false);
 			Singleton<InteractionCursor>.Instance.SetHidden(hidden: true);
 		}
-	}
-	
-	private void ReloadKaycees()
-	{
-		Log("Reloading Ascension...");
-		FrameLoopManager.Instance.SetIterationDisabled(disabled: false);
-		SceneLoader.Load("Ascension_Configure");
-		FrameLoopManager.Instance.SetIterationDisabled(disabled: false);
-		SaveManager.savingDisabled = false;
-		MenuController.LoadGameFromMenu(newGameGBC: false);
-	}
-	
-	private void ReloadVanilla()
-	{
-		Log("Reloading Vanilla...");
-		FrameLoopManager.Instance.SetIterationDisabled(disabled: false);
-		MenuController.ReturnToStartScreen();
-		MenuController.LoadGameFromMenu(newGameGBC: false);
 	}
 	
 	private void RestartVanilla()

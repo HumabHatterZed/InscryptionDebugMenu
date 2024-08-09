@@ -4,6 +4,8 @@ using DiskCardGame;
 using GBC;
 using InscryptionAPI.Card;
 using InscryptionAPI.Helpers.Extensions;
+using System.Collections;
+using System.Xml.Linq;
 using UnityEngine;
 
 namespace DebugMenu.Scripts.Popups.DeckEditorPopup;
@@ -14,6 +16,7 @@ public class DeckEditorPopup : BaseWindow
 	public override Vector2 Size => new(600f, 768f);
 
 	private DeckInfo CurrentDeck => Helpers.CurrentDeck();
+	private List<CardInfo> CurrentDeckCards => CurrentDeck.Cards ?? new();
 
 	private int currentDeckEditorSelection = 0;
 	private Vector2 editDeckScrollVector = Vector2.zero;
@@ -21,13 +24,14 @@ public class DeckEditorPopup : BaseWindow
 	private string lastCardSearch = "";
 	private List<CardInfo> lastSearchedList = null;
 	private Vector2 foundCardListScrollVector = Vector2.zero;
+    private static bool gbcAddToCollection = true;
 
-	public override void OnGUI()
+	private static bool searchBySigil = false;
+
+    public override void OnGUI()
 	{
 		base.OnGUI();
-
-		DeckInfo currentDeck = CurrentDeck;
-		if (currentDeck == null)
+		if (CurrentDeckCards.Count == 0)
 		{
 			GUILayout.Label("No deck selected.", LabelHeaderStyleLeft);
 			return;
@@ -49,44 +53,68 @@ public class DeckEditorPopup : BaseWindow
 
 	private void UpdateDeckReviewDisplay(bool amountChanged, CardInfo currentSelection)
 	{
-        DeckReviewSequencer sequence = UnityEngine.Object.FindObjectOfType<DeckReviewSequencer>();
-		if (sequence == null)
-			return;
+		if (SaveManager.SaveFile.IsPart2)
+		{
+			if (MenuController.m_Instance?.cardLibraryUI == null || !MenuController.Instance.cardLibraryUI.activeSelf)
+				return;
 
-		if (amountChanged)
-		{
-			ViewManager.Instance.CurrentView = View.Board;
-			sequence.SetDeckReviewShown(false);
-            ViewManager.Instance.CurrentView = View.MapDeckReview;
-            sequence.SetDeckReviewShown(true);
+			DeckBuildingUI ui = MenuController.Instance.cardLibraryUI.GetComponent<DeckBuildingUI>();
+			if (ui == null)
+				return;
+			if (gbcAddToCollection)
+				ui.Initialize();
+
+			ui.UpdatePanelContents();
+            AudioController.Instance.PlaySound2D("chipBlip2", MixerGroup.None, 0.4f, 0f, new AudioParams.Pitch(Mathf.Min(0.8f + SaveData.Data.deck.Cards.Count * 0.025f, 1.3f)));
         }
-		else
+		else if (ViewManager.Instance?.CurrentView == View.MapDeckReview)
 		{
-			SelectableCard card = sequence.cardArray.displayedCards.Find(x => x.Info == currentSelection);
-            card.RenderInfo.attack = card.Info.Attack;
-            card.RenderInfo.health = card.Info.Health;
-            card.RenderInfo.energyCost = card.Info.EnergyCost;
-            card.RenderCard();
+			DeckReviewSequencer sequence = Singleton<DeckReviewSequencer>.m_Instance;
+            if (sequence == null)
+                return;
+
+            if (amountChanged)
+            {
+                if (SaveManager.SaveFile.IsPart3)
+				{
+					(sequence as Part3DeckReviewSequencer).OnMainDeckSelected();
+				}
+				else
+				{
+                    ViewManager.Instance.CurrentView = View.MapDefault;
+                    sequence.SetDeckReviewShown(false);
+                    ViewManager.Instance.CurrentView = View.MapDeckReview;
+                    sequence.SetDeckReviewShown(true);
+                }
+            }
+            else
+            {
+                SelectableCard card = sequence.cardArray.displayedCards.Find(x => x.Info == currentSelection);
+                card.RenderInfo.attack = card.Info.Attack;
+                card.RenderInfo.health = card.Info.Health;
+                card.RenderInfo.energyCost = card.Info.EnergyCost;
+                card.RenderCard();
+            }
         }
     }
+
 	private void OnGUICardEditor() // currentDeckEditorSelection cannot be -1 here
 	{
-		if (currentDeckEditorSelection >= CurrentDeck.Cards.Count)
-			currentDeckEditorSelection = CurrentDeck.Cards.Count - 1;
+		if (currentDeckEditorSelection >= CurrentDeckCards.Count)
+			currentDeckEditorSelection = CurrentDeckCards.Count - 1;
 
-		if (CurrentDeck.Cards[currentDeckEditorSelection] == null)
+		if (CurrentDeckCards[currentDeckEditorSelection] == null)
 			return;
 
-		CardInfo val = CurrentDeck.Cards[currentDeckEditorSelection];
+		CardInfo val = CurrentDeckCards[currentDeckEditorSelection];
 		DrawCardInfo.Result result = DrawCardInfo.OnGUI(val, null, CurrentDeck);
+
+		if (result == DrawCardInfo.Result.None)
+			return;
 
         if (result == DrawCardInfo.Result.Removed)
 		{
-			currentDeckEditorSelection = Mathf.Min(currentDeckEditorSelection, CurrentDeck.Cards.Count);
-            if (ViewManager.m_Instance?.CurrentView == View.MapDeckReview)
-            {
-				UpdateDeckReviewDisplay(true, null);
-            }
+			currentDeckEditorSelection = Mathf.Min(currentDeckEditorSelection, CurrentDeckCards.Count);
         }
 		else if (result == DrawCardInfo.Result.Altered)
 		{
@@ -109,58 +137,57 @@ public class DeckEditorPopup : BaseWindow
 				}
 			}
             // update cards in deck review
-            if (ViewManager.m_Instance?.CurrentView == View.MapDeckReview)
-			{
-				UpdateDeckReviewDisplay(false, val);
-			}
-			// can't figure out how to update the GBC collection info dynamically, maybe later if requested
-/*            if (SaveManager.SaveFile.IsPart2)
-			{
-                DeckBuildingUI deckUI = UnityEngine.Object.FindObjectOfType<DeckBuildingUI>();
-				if (deckUI?.gameObject.activeSelf == true)
-				{
-                    foreach (PixelSelectableCard selectableCard in deckUI.collection.pageCards)
-                    {
-						Debug.Log($"{selectableCard != null}");
-                        if (selectableCard?.Info == val)
-                            selectableCard.RenderCard();
-                    }
-                }
-                CollectionBookUI collectionUI = UnityEngine.Object.FindObjectOfType<CollectionBookUI>();
-                if (collectionUI?.gameObject.activeSelf == true)
-                {
-                    foreach (PixelSelectableCard selectableCard in collectionUI.collectionUI.pageCards)
-                    {
-                        if (selectableCard?.Info == val)
-                            selectableCard.RenderCard();
-                    }
-                }
-            }*/
-		}
-	}
+        }
+        
+        UpdateDeckReviewDisplay(true, null);
+    }
 
 	private void OnGUICardSearcher()
 	{
 		GUILayout.BeginVertical();
+		GUILayout.BeginHorizontal();
 		GUILayout.Label("Card Finder", Helpers.HeaderLabelStyle());
+		searchBySigil = GUILayout.Toggle(searchBySigil, "Search by abilities");
+
+        if (SaveManager.SaveFile.IsPart2)
+			gbcAddToCollection = GUILayout.Toggle(gbcAddToCollection, "Add to collection");
+        GUILayout.EndHorizontal();
+		
 		lastCardSearch = GUILayout.TextField(lastCardSearch);
 		lastSearchedList = new List<CardInfo>();
 		if (lastCardSearch != "")
 		{
-			if (GetCardByName(lastCardSearch, out var result))
-			{
-				lastSearchedList.Add(CardManager.AllCardsCopy[result]);
-			}
-			else if (GetCardsThatContain(lastCardSearch, out List<int> results))
-			{
-				foreach (int item in results)
-				{
-					lastSearchedList.Add(CardManager.AllCardsCopy[item]);
-				}
-			}
-		}
+            if (searchBySigil)
+            {
+                if (GetAbilitiesThatContain(lastCardSearch, out List<Ability> results))
+                {
+                    lastSearchedList.AddRange(CardManager.AllCardsCopy.Where(x => x.abilities != null && x.abilities.Exists(results.Contains)));
+                }
+            }
+            else
+            {
+                if (GetCardByName(lastCardSearch, out var result))
+                {
+                    lastSearchedList.Add(CardManager.AllCardsCopy[result]);
+                }
+                else if (GetCardsThatContain(lastCardSearch, out List<int> results))
+                {
+                    foreach (int item in results)
+                    {
+                        lastSearchedList.Add(CardManager.AllCardsCopy[item]);
+                    }
+                }
+            }
+        }
+        else if (searchBySigil)
+        {
+            if (GetAbilitiesThatContain(lastCardSearch, out List<Ability> results))
+            {
+                lastSearchedList.AddRange(CardManager.AllCardsCopy.Where(x => x.abilities == null || x.abilities.Count == 0));
+            }
+        }
 		else
-		{
+        {
 			lastSearchedList = CardManager.AllCardsCopy;
 		}
 		FoundCardList();
@@ -173,15 +200,18 @@ public class DeckEditorPopup : BaseWindow
 		{
 			foreach (CardInfo lastSearched in lastSearchedList)
 			{
-				if (GUILayout.Button($"{lastSearched.DisplayedNameLocalized}\n({lastSearched.name})"))
+				string name = $"{lastSearched.DisplayedNameLocalized}\n({lastSearched.name})";
+				if (GUILayout.Button(name))
 				{
 					CardInfo obj = lastSearched.Clone() as CardInfo;
                     CurrentDeck.AddCard(obj);
-					SaveManager.SaveToFile(false);
-					currentDeckEditorSelection = CurrentDeck.Cards.Count;
-					if (ViewManager.m_Instance.CurrentView == View.MapDeckReview)
-						UpdateDeckReviewDisplay(true, obj);
-				}
+                    if (SaveManager.SaveFile.IsPart2 && gbcAddToCollection)
+						SaveManager.SaveFile.CollectGBCCard(obj);
+
+                    SaveManager.SaveToFile(false);
+                    currentDeckEditorSelection = CurrentDeckCards.Count;
+                    UpdateDeckReviewDisplay(true, obj);
+                }
 			}
 		}
 		else
@@ -232,7 +262,28 @@ public class DeckEditorPopup : BaseWindow
 		return exists;
 	}
 
-	private void OnGUIDeckViewer()
+    private bool GetAbilitiesThatContain(string search, out List<Ability> results)
+    {
+        results = new();
+        foreach (AbilityManager.FullAbility searching in AbilityManager.AllAbilities)
+        {
+            if (searching.Info == null)
+                continue;
+            search = search.ToLowerInvariant();
+
+            string abilityName = searching.Id.ToString();
+            if (int.TryParse(abilityName, out _) && searching.AbilityBehavior != null)
+                abilityName = searching.AbilityBehavior.Name;
+
+            if (!searching.Info.rulebookName.ToLowerInvariant().Contains(search) && !abilityName.ToLowerInvariant().Contains(search))
+                continue;
+
+            results.Add(searching.Id);
+        }
+        return results.Count > 0;
+    }
+
+    private void OnGUIDeckViewer()
 	{
 		bool adding = false;
 		GUILayout.BeginHorizontal();
@@ -245,10 +296,10 @@ public class DeckEditorPopup : BaseWindow
 		GUILayout.EndHorizontal();
 
 		editDeckScrollVector = GUILayout.BeginScrollView(editDeckScrollVector);
-		deckCardArray = new string[CurrentDeck.Cards.Count];
-		for (int i = 0; i < CurrentDeck.Cards.Count; i++)
+		deckCardArray = new string[CurrentDeckCards.Count];
+		for (int i = 0; i < CurrentDeckCards.Count; i++)
 		{
-			deckCardArray[i] = CurrentDeck.Cards[i]?.DisplayedNameLocalized ?? "Card not found!";
+			deckCardArray[i] = CurrentDeckCards[i]?.DisplayedNameLocalized ?? "Card not found!";
 		}
 
 		if (!adding)

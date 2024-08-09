@@ -13,7 +13,7 @@ public class Act2CardBattleSequence : BaseCardBattleSequence
 	public override int ScalesBalance => IsGBCBattle() ? PixelLifeManager.Instance.Balance : 0;
 	public override int PlayerEnergy => IsGBCBattle() ? PixelResourcesManager.Instance.PlayerEnergy : 0;
 	public override int PlayerMaxEnergy => IsGBCBattle() ? PixelResourcesManager.Instance.PlayerMaxEnergy : 0;
-    public override CardDrawPiles CardDrawPiles => Singleton<PixelCardDrawPiles>.Instance;
+    public override CardDrawPiles CardDrawPiles => Singleton<PixelCardDrawPiles>.m_Instance;
     public Act2CardBattleSequence(DebugWindow window) : base(window)
 	{
 		hasSideDeck = false;
@@ -21,7 +21,10 @@ public class Act2CardBattleSequence : BaseCardBattleSequence
 
 	public override void OnGUI()
 	{
-		Window.Label("Turn Number: " + TurnManager.Instance?.TurnNumber ?? "N/A");
+		if (TurnManager.m_Instance == null)
+			return;
+
+		Window.Label("Turn Number: " + TurnManager.Instance.TurnNumber);
 		base.OnGUI();
 	}
 

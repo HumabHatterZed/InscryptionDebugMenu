@@ -15,10 +15,9 @@
 
     <ItemGroup>
       <None Remove="InscryptionAPI.dll" />
+      <None Remove="GrimoraMod.dll" />
+      <None Remove="Infiniscryption.P03KayceeRun.dll" />
     </ItemGroup>
-  <ItemGroup>
-    <None Remove="GrimoraMod.dll" />
-  </ItemGroup>
 
     <ItemGroup>
         <PackageReference Include="BepInEx.Analyzers" Version="1.0.8">
@@ -38,6 +37,9 @@
       </Reference>
       <Reference Include="GrimoraMod" Private="false">
         <HintPath>GrimoraMod.dll</HintPath>
+      </Reference>
+      <Reference Include="P03KayceeRun" Private="false">
+        <HintPath>Infiniscryption.P03KayceeRun.dll</HintPath>
       </Reference>
     </ItemGroup>
 

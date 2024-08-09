@@ -1,5 +1,8 @@
 ﻿using System.Collections;
+using System.Security.Cryptography;
 using DebugMenu.Scripts.Popups;
+using DebugMenu.Scripts.Popups.DeckEditorPopup;
+using DebugMenu.Scripts.Utils;
 using DiskCardGame;
 using InscryptionAPI.Helpers;
 using UnityEngine;
@@ -23,30 +26,40 @@ public abstract class BaseCardBattleSequence
 	protected bool hasSideDeck = true;
 	protected bool hasBones = true;
 	private bool drawingTutorCard = false;
-
+    private bool dealingScaleDamage = false;
 	public BaseCardBattleSequence(DebugWindow window)
 	{
 		this.Window = window;
 	}
 
-    private ButtonDisabledData DisableCardDraw() => new()
+    private bool DisableCardDraw()
     {
-        Disabled = (CardDrawPiles?.Deck?.CardsInDeck).GetValueOrDefault() == 0 | (SaveManager.SaveFile.IsPart2 && !IsGBCBattle())
-    };
+        return (CardDrawPiles?.Deck?.CardsInDeck).GetValueOrDefault() == 0 | (SaveManager.SaveFile.IsPart2 && !IsGBCBattle());
+    }
     private ButtonDisabledData DisableSideDraw() => new()
     {
         Disabled = !hasSideDeck || (CardDrawPiles3D?.SideDeck?.CardsInDeck).GetValueOrDefault() == 0
     };
     private ButtonDisabledData DisableTutorDraw() => new()
     {
-        Disabled = drawingTutorCard || (CardDrawPiles?.Deck?.CardsInDeck).GetValueOrDefault() == 0 | (SaveManager.SaveFile.IsPart2 && !IsGBCBattle())
+        Disabled = drawingTutorCard || DisableCardDraw()
     };
 
     public virtual void OnGUI()
 	{
-		using (Window.HorizontalScope(3))
+        Window.LabelHeader("CardBattle");
+        Opponent opp = TurnManager.m_Instance?.Opponent;
+        if (opp == null)
+            return;
+
+        int difficulty = (Singleton<MapNodeManager>.m_Instance.GetNodeWithId(RunState.Run.currentNodeId).Data as CardBattleNodeData)?.difficulty ?? TurnManager.Instance.Opponent.Difficulty;
+        Window.Label($"{TurnManager.Instance.Opponent.GetType()?.Name}\nBlueprint: {TurnManager.Instance.Opponent.Blueprint?.name}", new(0, 80f));
+        Window.Label($"Difficulty: {difficulty + RunState.Run.DifficultyModifier} ({difficulty} + {RunState.Run.DifficultyModifier})" +
+            $"\nTurn Number: {TurnManager.Instance.TurnNumber}");
+        
+        using (Window.HorizontalScope(4))
 		{
-			if (Window.Button("Draw Card", disabled: DisableCardDraw))
+			if (Window.Button("Draw Main", disabled: () => new(() => DisableCardDraw())))
 				DrawCard();
 
 			if (Window.Button("Draw Side", disabled: DisableSideDraw))
@@ -54,29 +67,43 @@ public abstract class BaseCardBattleSequence
 
 			if (Window.Button("Draw Tutor", disabled: DisableTutorDraw))
 				Plugin.Instance.StartCoroutine(DrawTutor());
-		}
 
-		using (Window.HorizontalScope(3))
-		{
-			Window.Label("Bones:\n" + PlayerBones);
+			if (Window.Button("Draw New", disabled: () => new(() => SaveManager.SaveFile.IsPart2 && !IsGBCBattle())))
+                Plugin.Instance.ToggleWindow(typeof(DrawCustomCardPopup));
+        }
 
-			Func<ButtonDisabledData> disableBones = hasBones ? null : () => new DrawableGUI.ButtonDisabledData("No bones in this act");
-			if (Window.Button("+5", disabled: disableBones))
-				AddBones(5);
+        if (!hasBones)
+        {
+            Window.Label("No Bones in this act!");
+        }
+        else
+        {
+            using (Window.HorizontalScope(4))
+            {
+                Window.Label("Bones:\n" + PlayerBones);
+                if (Window.Button("+5"))
+                    AddBones(5);
 
-			if (Window.Button("-5", disabled: disableBones))
-				RemoveBones(5);
-		}
+                if (Window.Button("-5"))
+                    RemoveBones(5);
 
-		using (Window.HorizontalScope(3))
+                if (Window.Button("Clear"))
+                    ClearBones();
+            }
+        }
+
+		using (Window.HorizontalScope(4))
 		{
 			Window.Label("Scales:\n" + ScalesBalance);
 
-			if (Window.Button("Deal 2 Damage"))
-				DealDamage(2);
+			if (Window.Button("+2"))
+                Plugin.Instance.StartCoroutine(DealDamage(2));
 
-			if (Window.Button("Take 2 Damage"))
-				TakeDamage(2);
+            if (Window.Button("-2"))
+                Plugin.Instance.StartCoroutine(TakeDamage(2));
+
+            if (Window.Button("Reset", disabled: () => new(() => dealingScaleDamage)))
+                Plugin.Instance.StartCoroutine(ResetScale());
 		}
 
 		using (Window.HorizontalScope(4))
@@ -120,15 +147,6 @@ public abstract class BaseCardBattleSequence
 		}
 	}
 
-	public IEnumerator DrawTutor()
-	{
-        drawingTutorCard = true;
-        yield return CardDrawPiles.Deck.Tutor();
-        if (ViewManager.Instance != null)
-            Singleton<ViewManager>.Instance.Controller.LockState = ViewLockState.Unlocked;
-
-        drawingTutorCard = false;
-    }
     private IEnumerator DrawFromMainDeck()
     {
         drawingTutorCard = true;
@@ -140,6 +158,15 @@ public abstract class BaseCardBattleSequence
     {
         CardDrawPiles3D.SidePile.Draw();
         yield return CardDrawPiles3D.DrawFromSidePile();
+    }
+    public IEnumerator DrawTutor()
+	{
+        drawingTutorCard = true;
+        yield return CardDrawPiles.Deck.Tutor();
+        if (ViewManager.m_Instance != null)
+            Singleton<ViewManager>.Instance.Controller.LockState = ViewLockState.Unlocked;
+
+        drawingTutorCard = false;
     }
 
     private IEnumerator AddEnergyAndIncreaseLimit(int amount)
@@ -166,7 +193,7 @@ public abstract class BaseCardBattleSequence
 	{
         if (CardDrawPiles3D != null)
         {
-            if (CardDrawPiles3D.SideDeck.cards.Count > 0)
+            if (CardDrawPiles3D.SideDeck.Cards.Count > 0)
             {
                 Plugin.Instance.StartCoroutine(DrawFromSideDeck());
             }
@@ -182,8 +209,12 @@ public abstract class BaseCardBattleSequence
     }
 	public virtual void RemoveBones(int amount)
 	{
-        int bones = Mathf.Min(ResourcesManager.Instance.PlayerBones, amount);
+        int bones = Mathf.Min(PlayerBones, amount);
         Plugin.Instance.StartCoroutine(ResourcesManager.Instance.SpendBones(bones));
+    }
+    public virtual void ClearBones()
+    {
+        Plugin.Instance.StartCoroutine(ResourcesManager.Instance.SpendBones(PlayerBones));
     }
 	public virtual void SetMaxEnergyToMax()
 	{
@@ -216,29 +247,35 @@ public abstract class BaseCardBattleSequence
         ResourcesManager.Instance.StartCoroutine(ResourcesManager.Instance.SpendEnergy(amount));
     }
 
-    public virtual void TakeDamage(int amount)
+    public virtual IEnumerator TakeDamage(int amount)
     {
-        LifeManager lifeManager = Singleton<LifeManager>.Instance;
-		if (Configs.DisablePlayerDamage)
-		{
-            lifeManager.PlayerDamage += amount;
-			if (lifeManager.scales != null)
-				Plugin.Instance.StartCoroutine(lifeManager.scales.AddDamage(amount, Configs.InstantScales ? 1 : amount, true, null));
+        dealingScaleDamage = true;
+        if (Configs.DisablePlayerDamage)
+        {
+            Singleton<LifeManager>.Instance.PlayerDamage += amount;
+            yield return Singleton<LifeManager>.Instance.scales?.AddDamage(amount, Configs.InstantScales ? 1 : amount, true, null);
         }
         else
-			Plugin.Instance.StartCoroutine(lifeManager.ShowDamageSequence(amount, Configs.InstantScales ? 1 : amount, true, 0.125f, null, 0f, false));
+            yield return Singleton<LifeManager>.Instance.ShowDamageSequence(amount, Configs.InstantScales ? 1 : amount, true, 0.125f, null, 0f, false);
+        dealingScaleDamage = false;
     }
-    public virtual void DealDamage(int amount)
+    public virtual IEnumerator DealDamage(int amount)
     {
-        LifeManager lifeManager = Singleton<LifeManager>.Instance;
-		if (Configs.DisableOpponentDamage)
-		{
-			lifeManager.OpponentDamage += amount;
-            if (lifeManager.scales != null)
-                Plugin.Instance.StartCoroutine(lifeManager.scales.AddDamage(amount, Configs.InstantScales ? 1 : amount, false, null));
+        dealingScaleDamage = true;
+        if (Configs.DisableOpponentDamage)
+        {
+            Singleton<LifeManager>.Instance.OpponentDamage += amount;
+            yield return Singleton<LifeManager>.Instance.scales?.AddDamage(amount, Configs.InstantScales ? 1 : amount, false, null);
         }
-		else
-			Plugin.Instance.StartCoroutine(lifeManager.ShowDamageSequence(amount, Configs.InstantScales ? 1 : amount, false, 0.125f, null, 0f, false));
+        else
+            yield return Singleton<LifeManager>.Instance.ShowDamageSequence(amount, Configs.InstantScales ? 1 : amount, false, 0.125f, null, 0f, false);
+        dealingScaleDamage = false;
+    }
+    public virtual IEnumerator ResetScale()
+    {
+        dealingScaleDamage = true;
+        yield return LifeManager.Instance.ShowResetSequence();
+        dealingScaleDamage = false;
     }
     public virtual void AutoLoseBattle()
 	{

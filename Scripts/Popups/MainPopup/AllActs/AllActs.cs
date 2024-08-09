@@ -1,6 +1,8 @@
 ﻿using DebugMenu.Scripts.Acts;
+using DebugMenu.Scripts.Grimora;
 using DebugMenu.Scripts.Popups;
 using DebugMenu.Scripts.Popups.DeckEditorPopup;
+using DebugMenu.Scripts.Utils;
 using UnityEngine;
 
 namespace DebugMenu.Scripts.All;
@@ -29,7 +31,7 @@ public class AllActs : BaseAct
 	public override void OnGUI()
 	{
 		Window.Toggle("Block All Input", ref blockAllInput);
-		Window.Toggle("Disable Player Damage", ref Configs.m_disablePlayerDamage);
+        Window.Toggle("Disable Player Damage", ref Configs.m_disablePlayerDamage);
         Window.Toggle("Disable Opponent Damage", ref Configs.m_disableOpponentDamage);
         Window.Toggle("Disable All Dialogue", ref Configs.m_disableDialogue);
 
@@ -74,7 +76,7 @@ public class AllActs : BaseAct
 		using (Window.HorizontalScope(4))
 		{
 			Window.Label("<b>Menu Scale:</b>");
-			Window.Label($"{DrawableGUI.GetDisplayScalar()}");
+			Window.Label($"\n{DrawableGUI.GetDisplayScalar()}");
 
 			int sizeAsInt = (int)Configs.WindowSize;
             if (Window.Button("-", disabled: () => new() { Disabled = sizeAsInt <= 0 }))
@@ -88,7 +90,17 @@ public class AllActs : BaseAct
 				Configs.WindowSize = (Configs.WindowSizes)sizeAsInt;
 			}
 		}
-	}
+
+		Window.Padding();
+		if (Helpers.GetCurrentSavedAct() != Helpers.Acts.GrimoraAct)
+		{
+            if (Window.Button("Reload Act"))
+                Reload();
+
+            if (Window.Button("Restart Act"))
+                Restart();
+        }
+    }
 
 	public override void OnGUIMinimal()
 	{
@@ -103,11 +115,11 @@ public class AllActs : BaseAct
 
 	public override void Restart()
 	{
-		// Nothing
+		Window.CurrentAct.Restart();
 	}
 
 	public override void Reload()
 	{
-		// Nothing
-	}
+		Window.CurrentAct.Reload();
+    }
 }

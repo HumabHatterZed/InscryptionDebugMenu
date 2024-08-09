@@ -18,6 +18,11 @@ public class BoardCardEditorPopup : BaseWindow
     public override void OnGUI()
     {
         base.OnGUI();
+        if (GameFlowManager.m_Instance.CurrentGameState != GameState.CardBattle)
+        {
+            IsActive = false;
+            return;
+        }
         if (currentSelection == null)
         {
             GUILayout.Label("No card selected!", Helpers.HeaderLabelStyle());

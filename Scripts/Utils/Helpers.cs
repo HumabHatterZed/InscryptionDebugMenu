@@ -103,7 +103,7 @@ public static partial class Helpers
 		ButtonListPopup.OnGUI<ButtonListPopup>(window, "Select Blueprint", "Select Blueprint", GetAllBlueprints, OnChoseBlueprintButtonCallback);
 	}
 
-	public static void OnChoseBlueprintButtonCallback(int chosenIndex, string chosenValue, string metaData)
+	public static void OnChoseBlueprintButtonCallback(int chosenIndex, string chosenValue, List<string> metaData)
 	{
 		List<EncounterBlueprintData> list = EncounterManager.AllEncountersCopy;
 		if (chosenIndex < 0 || chosenIndex >= list.Count)
@@ -134,7 +134,7 @@ public static partial class Helpers
 		ButtonListPopup.OnGUI<ButtonListPopup>(window, "Select Opponent", "Select Opponent", GetAllOpponents, OnChoseOpponentButtonCallback, Opponent.Type.NUM_TYPES.ToString());
 	}
 
-	public static void OnChoseOpponentButtonCallback(int chosenIndex, string chosenValue, string metaData)
+	public static void OnChoseOpponentButtonCallback(int chosenIndex, string chosenValue, List<string> metaData)
 	{
 		List<OpponentManager.FullOpponent> list = new(OpponentManager.AllOpponents);
 		if (chosenIndex < 0 || chosenIndex >= list.Count)
@@ -172,7 +172,7 @@ public static partial class Helpers
 		ButtonListPopup.OnGUI<ButtonListPopup>(window, "Select Tribe", "Select Tribe", GetAllTribes, OnChoseTribeButtonCallback);
 	}
 
-	private static void OnChoseTribeButtonCallback(int chosenIndex, string chosenValue, string metaData)
+	private static void OnChoseTribeButtonCallback(int chosenIndex, string chosenValue, List<string> metaData)
 	{
 		List<Tribe> list = AllTribes();
 		if (chosenIndex < 0 || chosenIndex >= list.Count)
@@ -228,7 +228,7 @@ public static partial class Helpers
 		ButtonListPopup.OnGUI<ButtonListPopup>(window, "Select Ability", "Select Ability", GetAllAbilitys, OnChoseAbilityButtonCallback);
 	}
 
-	private static void OnChoseAbilityButtonCallback(int chosenIndex, string chosenValue, string metaData)
+	private static void OnChoseAbilityButtonCallback(int chosenIndex, string chosenValue, List<string> metaData)
 	{
 		List<AbilityManager.FullAbility> list = AbilityManager.AllAbilities;
 		if (chosenIndex < 0 || chosenIndex >= list.Count)
@@ -341,6 +341,8 @@ public static partial class Helpers
 
 	public static DeckInfo CurrentDeck()
 	{
+		if (GetCurrentSavedAct() == Acts.Act2)
+			return SaveData.Data.deck;
 /*		switch (GetCurrentSavedAct())
 		{
 			case Acts.Unknown:
@@ -391,54 +393,63 @@ public static partial class Helpers
 	}
     public static GUIStyle DisabledButtonStyle()
     {
-        GUIStyle style = new(GUI.skin.button)
-        {
-            fontStyle = FontStyle.Bold,
-            wordWrap = true
-        };
-        style.normal.background = style.active.background;
-        style.hover.background = style.active.background;
-        style.onNormal.background = style.active.background;
-        style.onHover.background = style.active.background;
-        style.onActive.background = style.active.background;
-        style.onFocused.background = style.active.background;
-        style.normal.textColor = Color.black;
-        return style;
+		if (m_disabledButtonStyle == null)
+		{
+            m_disabledButtonStyle = new(GUI.skin.button)
+			{
+				fontStyle = FontStyle.Bold,
+				wordWrap = true
+			};
+            m_disabledButtonStyle.normal.background = m_disabledButtonStyle.active.background;
+            m_disabledButtonStyle.hover.background = m_disabledButtonStyle.active.background;
+            m_disabledButtonStyle.onNormal.background = m_disabledButtonStyle.active.background;
+            m_disabledButtonStyle.onHover.background = m_disabledButtonStyle.active.background;
+            m_disabledButtonStyle.onActive.background = m_disabledButtonStyle.active.background;
+            m_disabledButtonStyle.onFocused.background = m_disabledButtonStyle.active.background;
+			m_disabledButtonStyle.normal.textColor = Color.black;
+		}
+		return m_disabledButtonStyle;
     }
     public static GUIStyle EnabledButtonStyle()
     {
-        GUIStyle style = new(GUI.skin.button)
+        if (m_enabledButtonStyle == null)
         {
-            wordWrap = true
-        };
-        style.normal.background = style.active.background;
-        style.hover.background = style.active.background;
-        style.onNormal.background = style.active.background;
-        style.onHover.background = style.active.background;
-        style.onActive.background = style.active.background;
-        style.onFocused.background = style.active.background;
-        style.normal.textColor = Color.white;
-        return style;
+            m_enabledButtonStyle = new(GUI.skin.button)
+            {
+                wordWrap = true
+            };
+            m_enabledButtonStyle.normal.background = m_enabledButtonStyle.active.background;
+            m_enabledButtonStyle.hover.background = m_enabledButtonStyle.active.background;
+            m_enabledButtonStyle.onNormal.background = m_enabledButtonStyle.active.background;
+            m_enabledButtonStyle.onHover.background = m_enabledButtonStyle.active.background;
+            m_enabledButtonStyle.onActive.background = m_enabledButtonStyle.active.background;
+            m_enabledButtonStyle.onFocused.background = m_enabledButtonStyle.active.background;
+            m_enabledButtonStyle.normal.textColor = Color.white;
+        }
+        return m_enabledButtonStyle;
     }
     public static GUIStyle HeaderLabelStyle()
     {
-        GUIStyle style = new(GUI.skin.label)
+        m_headerLabelStyle ??= new(GUI.skin.label)
         {
             fontSize = 17,
             fontStyle = FontStyle.Bold
         };
-        return style;
+        return m_headerLabelStyle;
     }
-    public static GUIStyle HeaderLabelStyleRight()
+    public static GUIStyle CloseButtonStyle()
     {
-        GUIStyle style = new(GUI.skin.label)
+
+        m_closeButtonStyle ??= new(GUI.skin.button)
         {
-            fontSize = 17,
-            fontStyle = FontStyle.Bold,
 			alignment = TextAnchor.MiddleRight
         };
-        return style;
+        return m_closeButtonStyle;
     }
+    private static GUIStyle m_headerLabelStyle;
+    private static GUIStyle m_closeButtonStyle;
+    private static GUIStyle m_enabledButtonStyle;
+    private static GUIStyle m_disabledButtonStyle;
 }
 
 public static class KeyCodeExtensions

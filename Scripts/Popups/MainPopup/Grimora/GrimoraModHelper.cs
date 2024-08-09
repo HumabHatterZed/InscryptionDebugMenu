@@ -1,10 +1,15 @@
 ﻿using BepInEx.Bootstrap;
+using DiskCardGame;
+using GrimoraMod;
+using GrimoraMod.Saving;
+using UnityEngine;
 
 namespace DebugMenu.Scripts.Grimora;
 
 public static partial class GrimoraModHelper
 {
-    public static bool Enabled => Chainloader.PluginInfos.ContainsKey("arackulele.inscryption.grimoramod");
+    internal static bool _enabled;
+    public static bool Enabled => _enabled;
     internal static void PatchGrimoraMod()
     {
         Plugin.HarmonyInstance.PatchAll(typeof(GrimoraModHelper));

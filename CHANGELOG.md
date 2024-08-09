@@ -2,24 +2,67 @@
 
 ## 1.4.0
 ### General
-- Fixed the 'Draw Tutor' button being clickable while Tutor sequence is still active
-- Added 'Hide Mod GUIDs' toggle and associated config for the 'Trigger Sequence' menu
-- Deck Editor: ability search now compares against rulebook name and AbilityBehaviour.Name
+- Fixed GUIClip errors when exiting to main menu during a battle
+- Fixed Show AbilityInfos menu not working correctly
+- Fixed Show Dialogue Events menu not working correctly
+- Relocated size toggles for the main window to the drag bar
+- Updated information shown in the Show AbilityInfos menu
+- Internal refactoring of sequence helper classes and BaseAct classes
 
-### Deck Editor
-- Fixed Force Portrait buttons changing size
-- Fixed additional Force Portrait buttons appearing when they shouldn't
-- Ability search field will now compare against an ability's rulebook and either its AbilityBehaviour.Name or enum
+### Act 2
+- Fixed Currency menu not referencing GBC's save data
+- Added 'Reload' and 'Restart' functionality
+
+### Act 3
+- Fixed Currency menu referencing Runstate.Run instead of Part3SaveData.Data
+- Fixed deck review view breaking when editing cards after obtaining the Mox Module
+- Added 'Reload and 'Restart' functionality
+- P03 KCM: Enabled Bones submenu
 
 ### Grimora
 - Disabled 'Force Emission' button
-- Enabled adding/removing currency
-- GrimoraMod: Added debug menus and functionality special sequences
+- Items submenu is now disabled in the vanilla Grimora Act
+- GrimoraMod: Enabled Currency submenu
+- GrimoraMod: Added support for several mod sequencers
 - GrimoraMod: Added debug functionality for Hammer
-- GrimoraMod: Removed broken vanilla sequences from 'Trigger Sequence' menu
+- GrimoraMod: Removed 'Reload' and 'Restart' buttons due to broken functionality
 
-### Act 3
-- P03 KCM: Enabled buttons for adding/removing Bones
+### Trigger Sequence Menu
+- Added toggle to show only working sequences for the current act
+- Added toggle to hide the mod GUID on the buttons
+- Triggering an unhandled node sequence now displays the 'Trigger Sequence' button in the menu
+- 'SpecialCardSequence' menu now displays the sequence's name as the header instead
+
+### Card Battles
+- Fixed the 'Draw Tutor' button being clickable while Tutor sequence is still active
+- Added new function to create a new card in your hand
+- Added new function to clear current Bones
+- Added new function to reset the scale balance
+
+### Game Board
+- Fixed unnecessary horizontal scroll bar in the 'Replace/Create Card in Slot' list
+- Added new function to modify the selected slot's SlotModificationType
+- Added new function to reset the selected card's taken damage
+- Added new function to reset the selected card's shields
+- Rearranged menu elements
+- Renamed 'No triggers' button to 'Ignore Triggers'
+
+### Deck Editor
+- Fixed forced portraits not updating the emission sprite
+- Fixed forced portraits not working in Act 2
+- Fixed 'Force X Portrait' buttons changing size when toggling
+- Fixed additional Force Portrait buttons appearing when they shouldn't
+- Added support for card name replacements (thank you JustinBustin5)
+- Added 'Duplicate Selected Card' button
+- Added toggle to search for cards by their sigils
+- Added support for cards that cost multiple of the same colour Mox
+- Added buttons to increase Attack and Health by 2
+- Adjusted cost button spacings
+- Menu now shows a card's display name alongside their internal name
+- Ability search field will now compare against an ability's rulebook and either its AbilityBehaviour.Name or enum
+- Act 2: Added toggle to the Card Finder for adding a card to the collection as well as the deck
+- Act 2: Adding cards to your deck while the collection is open will now update the panel contents
+- Act 2: Removing a card from your deck will remove it from the collection as well
 
 ## 1.3.0
 ### General

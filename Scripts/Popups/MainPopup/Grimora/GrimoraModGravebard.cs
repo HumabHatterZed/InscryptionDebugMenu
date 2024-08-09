@@ -23,9 +23,9 @@ public static partial class GrimoraModHelper
         if (sequencer == null)
             return;
 
-        FieldInfo priceInfo = typeof(GravebardCampSequencer).GetField("price");
-        ConfirmStoneButton confirmStone = (ConfirmStoneButton)typeof(GravebardCampSequencer).GetField("confirmStone").GetValue(sequencer);
-        Window.LabelBold($"Current price: {(int)priceInfo.GetValue(sequencer)}");
+        int price = (int)typeof(GravebardCampSequencer).GetField("price", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(sequencer);
+        ConfirmStoneButton confirmStone = (ConfirmStoneButton)typeof(GravebardCampSequencer).GetField("confirmStone", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(sequencer);
+        Window.LabelBold($"Current price: {price}");
 
         if (Window.Button("Generate Item", disabled: () => new(() => addingMod || confirmStone.currentState != HighlightedInteractable.State.Interactable || RunState.Run.consumables.Count < 3)))
         {
@@ -34,6 +34,7 @@ public static partial class GrimoraModHelper
         }
         if (Window.Button("Tell Random Story"))
         {
+            addingMod = true;
             Plugin.Instance.StartCoroutine(TellRandomStory(sequencer));
         }
     }
@@ -45,6 +46,7 @@ public static partial class GrimoraModHelper
     private static IEnumerator TellRandomStory(GravebardCampSequencer sequence)
     {
         yield return GravebardTellStory(sequence);
+        addingMod = false;
     }
 
     [HarmonyReversePatch, HarmonyPatch(typeof(GravebardCampSequencer), "GenerateItem")]

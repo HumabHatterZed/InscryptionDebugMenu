@@ -124,9 +124,9 @@ public abstract class DrawableGUI
 		Columns = 0;
 	}
 
-	public virtual void StartNewColumn()
+	public virtual void StartNewColumn(float? padding = null)
 	{
-		X += ColumnWidth + ColumnPadding;
+		X += ColumnWidth + (padding ?? ColumnPadding);
 		Y = TopOffset;
 		Columns++;
 	}

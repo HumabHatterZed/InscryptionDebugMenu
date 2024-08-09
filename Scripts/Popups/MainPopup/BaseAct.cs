@@ -1,8 +1,10 @@
 ﻿using BepInEx.Logging;
+using DebugMenu.Scripts.Grimora;
 using DebugMenu.Scripts.Popups;
 using DebugMenu.Scripts.Sequences;
 using DebugMenu.Scripts.Utils;
 using DiskCardGame;
+using GBC;
 using UnityEngine;
 
 namespace DebugMenu.Scripts.Acts;
@@ -27,33 +29,34 @@ public abstract class BaseAct
     public virtual void Update() { }
 
     public abstract void OnGUI();
-    public abstract void OnGUIMinimal();
 
-    public abstract void Reload();
+    public virtual void OnGUIMinimal()
+    {
+        OnGUICurrentNode();
+    }
+
+    public virtual void Reload()
+    {
+        FrameLoopManager.Instance.SetIterationDisabled(disabled: false);
+        MenuController.ReturnToStartScreen();
+        MenuController.LoadGameFromMenu(newGameGBC: false);
+    }
     public abstract void Restart();
+
+    public void ReloadKaycees()
+    {
+        Log("Reloading Ascension...");
+        FrameLoopManager.Instance.SetIterationDisabled(disabled: false);
+        SceneLoader.Load("Ascension_Configure");
+        FrameLoopManager.Instance.SetIterationDisabled(disabled: false);
+        SaveManager.savingDisabled = false;
+        MenuController.LoadGameFromMenu(newGameGBC: false);
+    }
 
     public void Log(string log) => Logger.LogInfo($"[{GetType().Name}] {log}");
     public void Warning(string log) => Logger.LogWarning($"[{GetType().Name}] {log}");
     public void Error(string log) => Logger.LogError($"[{GetType().Name}] {log}");
 
-    public void DrawCurrencyGUI()
-    {
-        Window.LabelHeader("Currency: " + RunState.Run.currency);
-        using (Window.HorizontalScope(4))
-        {
-            if (Window.Button("+1"))
-                RunState.Run.currency++;
-
-            if (Window.Button("-1"))
-                RunState.Run.currency = Mathf.Max(0, RunState.Run.currency - 1);
-
-            if (Window.Button("+5"))
-                RunState.Run.currency += 5;
-
-            if (Window.Button("-5"))
-                RunState.Run.currency = Mathf.Max(0, RunState.Run.currency - 5);
-        }
-    }
     public void DrawItemsGUI()
     {
         Window.LabelHeader("Items");
@@ -72,25 +75,28 @@ public abstract class BaseAct
         }
     }
 
-    public static void OnChoseButtonCallback(int chosenIndex, string chosenValue, string inventoryIndex)
+    public static void OnChoseButtonCallback(int chosenIndex, string chosenValue, List<string> inventoryIndex)
     {
         List<string> currentItems = RunState.Run.consumables;
-        int index = int.Parse(inventoryIndex);
-        string selectedItem = index >= RunState.Run.consumables.Count ? null : RunState.Run.consumables[index];
+        foreach (string s in inventoryIndex)
+        {
+            int index = int.Parse(s);
+            string selectedItem = index >= RunState.Run.consumables.Count ? null : RunState.Run.consumables[index];
 
-        if (chosenValue == null)
-        {
-            ItemsManager.Instance.RemoveItemFromSaveData(selectedItem);
-        }
-        else
-        {
-            if (index >= currentItems.Count)
+            if (chosenValue == null)
             {
-                currentItems.Add(chosenValue);
+                ItemsManager.Instance.RemoveItemFromSaveData(selectedItem);
             }
             else
             {
-                currentItems[index] = chosenValue;
+                if (index >= currentItems.Count)
+                {
+                    currentItems.Add(chosenValue);
+                }
+                else
+                {
+                    currentItems[index] = chosenValue;
+                }
             }
         }
 
@@ -123,24 +129,88 @@ public abstract class BaseAct
 
     public void DrawSequencesGUI()
     {
-        ButtonListPopup.OnGUI<SequenceListPopup>(Window, "Trigger Sequence", "Trigger Sequence", GetListsOfSequences, OnChoseSequenceButtonCallback);
+        ButtonListPopup.OnGUI<SequenceListPopup>(Window, "Trigger Sequence", "Trigger Sequence", GetListsOfSequences, OnChoseSequenceButtonCallback, "Custom");
     }
 
-    public static void OnChoseSequenceButtonCallback(int chosenIndex, string chosenValue, string metaData)
+    public static void OnChoseSequenceButtonCallback(int chosenIndex, string chosenValue, List<string> metaData)
     {
-        if (chosenIndex < 0 || chosenIndex >= Helpers.CurrentSequences.Count)
+        if (chosenIndex < 0 || chosenIndex >= Helpers.ShownSequences.Count)
             return;
 
-        Helpers.CurrentSequences[chosenIndex].Sequence();
+        Helpers.ShownSequences[chosenIndex].Sequence();
     }
-
-    private Tuple<List<string>, List<string>> GetListsOfSequences()
+    
+    internal static Tuple<List<string>, List<string>> GetListsOfSequences()
     {
-        List<BaseTriggerSequence> sequences = Helpers.CurrentSequences;
+        List<BaseTriggerSequence> sequences = Helpers.ShownSequences;
         List<string> names = new(sequences.Count);
         List<string> values = new(sequences.Count);
         names.AddRange(sequences.ConvertAll(x => x.ButtonName));
         values.AddRange(sequences.ConvertAll(x => x.SequenceName));
         return new Tuple<List<string>, List<string>>(names, values);
+    }
+
+    public virtual void OnGUICurrentNode()
+    {
+        GameFlowManager instance = GameFlowManager.m_Instance;
+        if (instance == null)
+            return;
+
+        GameState state = instance.CurrentGameState;
+        //Window.LabelHeader(state.ToString());
+        switch (state)
+        {
+            case GameState.CardBattle:
+                m_cardBattleSequence.OnGUI();
+                break;
+            case GameState.Map:
+                Window.LabelHeader("Map");
+                m_mapSequence.OnGUI();
+                break;
+            case GameState.FirstPerson3D:
+                Window.LabelHeader("FirstPerson3D");
+                break;
+            case GameState.SpecialCardSequence:
+                if (Helpers.LastSpecialNodeData == null)
+                {
+                    Window.LabelHeader("Null NodeData");
+                    DrawSequencesGUI();
+                    return;
+                }
+
+                Type nodeType = Helpers.LastSpecialNodeData.GetType();
+                string nodeDataName = nodeType.Name.Replace("NodeData", "");
+                Window.LabelHeader(nodeDataName);
+                
+                if (nodeType == typeof(CardChoicesNodeData))
+                {
+                    OnGUICardChoiceNodeSequence();
+                    return;
+                }
+                
+                if (!OnSpecialCardSequence(nodeDataName))
+                {
+                    Window.Label($"Unhandled NodeData Type!");
+                    DrawSequencesGUI();
+                }
+                break;
+            default:
+                Window.LabelHeader(instance.CurrentGameState.ToString());
+                Window.Label($"Unhandled GameFlowState!");
+                DrawSequencesGUI();
+                break;
+        }
+    }
+
+    public virtual bool OnSpecialCardSequence(string nodeDataName)
+    {
+        return false;
+    }
+    private void OnGUICardChoiceNodeSequence()
+    {
+        if (Window.Button("Reroll choices"))
+        {
+            Singleton<SpecialNodeHandler>.Instance.cardChoiceSequencer.OnRerollChoices();
+        }
     }
 }

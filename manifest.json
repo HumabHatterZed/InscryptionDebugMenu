@@ -4,6 +4,6 @@
     "website_url": "https://github.com/JamesVeug/InscryptionDebugMenu",
     "description": "Adds an in-game menu to help you with all your debugging needs!",
     "dependencies": [
-        "API_dev-API-2.20.0"
+        "API_dev-API-2.20.1"
     ]
 }

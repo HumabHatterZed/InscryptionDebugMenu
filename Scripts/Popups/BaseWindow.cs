@@ -23,6 +23,7 @@ public abstract class BaseWindow : DrawableGUI
 		}
 	}
 
+	public bool forceClose = false;
 	protected bool isActive = false;
 	protected Rect windowRect = new(20f, 20f, 512f, 512f);
 	protected bool isOpen = true;
@@ -67,11 +68,18 @@ public abstract class BaseWindow : DrawableGUI
 
 	private void OnWindowDraw(int windowID)
 	{
+		PreWindow();
 		GUI.DragWindow(new Rect(25f, 0f, Size.x, 20f));
 		if (ClosableWindow)
 		{
 			if (!OnClosableWindowDraw())
                 return;
+
+			if (forceClose)
+			{
+				forceClose = false;
+				return;
+			}
         }
 		else if (!OnToggleWindowDraw())
 			return;
@@ -80,6 +88,10 @@ public abstract class BaseWindow : DrawableGUI
 		BeginDrawingGUI();
 	}
 
+	protected virtual void PreWindow()
+	{
+
+	}
 	protected virtual void BeginDrawingGUI()
 	{
 		GUILayout.BeginArea(new Rect(5f, 25f, windowRect.width, windowRect.height));
@@ -89,7 +101,7 @@ public abstract class BaseWindow : DrawableGUI
 
 	protected virtual bool OnToggleWindowDraw()
 	{
-		isOpen = GUI.Toggle(new Rect(5f, 0f, 20f, 20f), isOpen, "");
+		isOpen = GUI.Toggle(new Rect(5f, 0f, 20f, 20f), isOpen, "-");
 		if (!isOpen)
 		{
 			windowRect.Set(windowRect.x, windowRect.y, 120, 60);
@@ -101,7 +113,7 @@ public abstract class BaseWindow : DrawableGUI
 
 	protected bool OnClosableWindowDraw()
 	{
-		if (GUI.Button(new Rect(5f, 0f, 20f, 20f), "X"))
+		if (GUI.Button(new Rect(5f, 0f, 20f, 20f), "X", Helpers.CloseButtonStyle()))
 		{
 			IsActive = false;
 			return false;

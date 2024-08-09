@@ -13,11 +13,12 @@ public class ButtonListPopup : BaseWindow
 	private string header = "";
 	private string filterText = "";
 	public List<string> buttonNames = new();
-	private List<string> buttonValues = new();
+	public List<string> buttonValues = new();
 	private string popupNameOverride = "Button List";
-	private Action<int, string, string> callback;
-	private Vector2 position;
-	private string disableMatch;
+	private Action<int, string, List<string>> callback;
+
+    private Vector2 position;
+	private List<string> disableMatch;
 
 	public override void OnGUI()
 	{
@@ -52,9 +53,9 @@ public class ButtonListPopup : BaseWindow
 			if(!IsWhitelisted(buttonName, buttonValue))
 				continue;
 
-			if (Button(buttonName, disabled: () => new() { Disabled = buttonValue == disableMatch }))
+			if (Button(buttonName, disabled: () => new() { Disabled = disableMatch.Contains(buttonValue) }))
 			{
-				callback(i, buttonValue, disableMatch);
+				callback(i, buttonName, disableMatch);
 				Plugin.Instance.ToggleWindow(this.GetType()); // close window
 			}
 
@@ -83,7 +84,7 @@ public class ButtonListPopup : BaseWindow
 		return name;
 	}
 
-	public static bool OnGUI<T>(DrawableGUI gui, string buttonText, string headerText, Func<Tuple<List<string>, List<string>>> GetDataCallback, Action<int, string, string> OnChoseButtonCallback, string disableMatch = null)
+	public static bool OnGUI<T>(DrawableGUI gui, string buttonText, string headerText, Func<Tuple<List<string>, List<string>>> GetDataCallback, Action<int, string, List<string>> OnChoseButtonCallback, params string[] disableMatch)
 		where T : ButtonListPopup
 	{
 		if (gui.Button(buttonText))
@@ -99,7 +100,7 @@ public class ButtonListPopup : BaseWindow
 			buttonListPopup.buttonValues = data.Item2;
 			buttonListPopup.header = headerText;
 			buttonListPopup.filterText = "";
-			buttonListPopup.disableMatch = disableMatch;
+			buttonListPopup.disableMatch = disableMatch.ToList();
 			return true;
 		}
 

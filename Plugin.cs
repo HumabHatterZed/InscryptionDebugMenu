@@ -1,5 +1,6 @@
 using System.Reflection;
 using BepInEx;
+using BepInEx.Bootstrap;
 using BepInEx.Logging;
 using DebugMenu.Scripts.Act3;
 using DebugMenu.Scripts.Grimora;
@@ -56,6 +57,9 @@ namespace DebugMenu
             blockerParent.AddComponent<GraphicRaycaster>();
             DontDestroyOnLoad(blockerParent);
 
+			GrimoraModHelper._enabled = Chainloader.PluginInfos.ContainsKey("arackulele.inscryption.grimoramod");
+            P03ModHelper._enabled = Chainloader.PluginInfos.ContainsKey("zorro.inscryption.infiniscryption.p03kayceerun");
+
             HarmonyInstance.PatchAll(Assembly.GetExecutingAssembly());
 
 			if (GrimoraModHelper.Enabled)
@@ -74,7 +78,7 @@ namespace DebugMenu
             for (int i = 0; i < types.Length; i++)
 			{
 	            Type type = types[i];
-	            if (type.IsSubclassOf(typeof(BaseWindow)))
+	            if (type.IsSubclassOf(typeof(BaseWindow)) && !type.IsAbstract)
 	            {
 		            Logger.LogDebug($"Made {type}!");	   
 		            AllWindows.Add((BaseWindow)Activator.CreateInstance(type));

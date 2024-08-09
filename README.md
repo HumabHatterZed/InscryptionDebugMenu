@@ -6,20 +6,19 @@ Also provides additional information if you have trouble debugging your mod!
 Features:
 - Manually trigger map events
 - Edit your deck and the game board
-- Skip through card battles
-- Skip through dialogue
+- Skip through card battles and dialogue
 - Use hotkeys to speed up debugging
 - View in-game data to help debugging
 
 Supports:
 - Act 1
 - Act 2 (Minimal support)
-- Act 3 (PO3)
-- Grimora Act
+- Act 3
+- Grimora
 - Magnificus (Minimal support)
 
 
-Hotkeys
+Hotkeys:
 - `~` Show/Hide Debug Menu
 - `F1` Set time scale to 1
 - `F1 + LeftControl` Set time scale to 10
@@ -38,15 +37,14 @@ https://github.com/JamesVeug/InscryptionDebugMenu
 
 **But... I don't know how to code!**
 
-Create an issue on the github page and mention it on the Inscryption modding discord and someone might take on the task.
+Create an issue on the GitHub page and mention it on the Inscryption modding discord and someone might take on the task.
 
 
 ## Contributors
 - JamesGames
 - WhistleWind
-
+- JustinBustin5
 
 ## Thanks To:
-- Peaiece for Speed Tweaks (This mod uses code from it since it's deprecated)
-- Peaiece for Deck Editor (This mod uses code from it since it's no longer supported)
+- Peaiece for Speed Tweaks and Deck Editor (this mod recycles some code from both of those mods)
 - Keks307 for bug reporting

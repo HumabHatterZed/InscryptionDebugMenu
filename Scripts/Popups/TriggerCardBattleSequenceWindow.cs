@@ -51,15 +51,10 @@ public class TriggerCardBattleSequenceWindow : BaseWindow
     public override void OnGUI()
 	{
 		base.OnGUI();
-		
 		LabelHeader(PopupName, leftAligned: true);
-		
 		DrawTools();
-
 		StartNewColumn();
-
 		DrawSequenceDetails();
-
 		Padding();
 
 		if (Button("Trigger Sequence", disabled: ValidateTriggerButton) && CanTriggerSequence())

@@ -17,16 +17,17 @@ public class Act1CardBattleSequence : BaseCardBattleSequence
 	{
 	}
 	
-	public override void OnGUI()
+/*	public override void OnGUI()
 	{
-		MapNode nodeWithId =  Singleton<MapNodeManager>.m_Instance.GetNodeWithId(RunState.Run.currentNodeId);
-        Window.Label($"{TurnManager.Instance.Opponent.GetType()}\nBlueprint: {TurnManager.Instance.Opponent.Blueprint.name}");
-        if (nodeWithId.Data is CardBattleNodeData cardBattleNodeData)
-		{
-            Window.Label($"Difficulty: {cardBattleNodeData.difficulty + RunState.Run.DifficultyModifier} ({cardBattleNodeData.difficulty} + {RunState.Run.DifficultyModifier})" +
-				$"\nTurn Number: {TurnManager.Instance.TurnNumber}");
-		}
+		Opponent opp = TurnManager.m_Instance?.Opponent;
+		if (opp == null)
+			return;
 
-		base.OnGUI();
-	}
+        int difficulty = (Singleton<MapNodeManager>.m_Instance.GetNodeWithId(RunState.Run.currentNodeId).Data as CardBattleNodeData)?.difficulty ?? TurnManager.Instance.Opponent.Difficulty;
+        Window.Label($"{TurnManager.Instance.Opponent.GetType()?.Name}\nBlueprint: {TurnManager.Instance.Opponent.Blueprint.name}");
+        Window.Label($"Difficulty: {difficulty + RunState.Run.DifficultyModifier} ({difficulty} + {RunState.Run.DifficultyModifier})" +
+            $"\nTurn Number: {TurnManager.Instance.TurnNumber}");
+
+        base.OnGUI();
+	}*/
 }

@@ -15,7 +15,7 @@ public class DebugWindow : BaseWindow
 		Off, Minimal, All
 	}
 	
-	public override string PopupName => "Debug Menu";
+	public override string PopupName => currentState != ToggleStates.Off ? "Debug Menu" : "";
 	public override Vector2 Size => new(650, 420);
 	public override bool ClosableWindow => false;
 	public BaseAct CurrentAct => currentAct;
@@ -64,67 +64,61 @@ public class DebugWindow : BaseWindow
 		float scrollAreaHeight = Mathf.Max(Height, windowRect.y);
 		Rect contentSize = new(new Vector2(0, 0), new Vector2(scrollAreaWidth, scrollAreaHeight));
 		Rect viewportSize = new(new Vector2(0, 0), Size - new Vector2(10, 0));
-		position = GUI.BeginScrollView(viewportSize, position, contentSize);
-		
-		DrawToggleButtons();
-		if (currentState > ToggleStates.Off)
-		{
-			base.OnGUI();
-			if (currentState == ToggleStates.All || currentAct == null)
-			{
-				allActs.OnGUI();
-				if (currentAct != null)
-				{
-					Padding();
-					if (currentAct.Window.Button("Reload Act"))
-                        currentAct.Reload();
 
-                    if (currentAct.Window.Button("Restart Act"))
-							currentAct.Restart();
-                }
-				StartNewColumn();
-			}
+        if (currentState == ToggleStates.Off)
+        {
+            GUI.Label(new(5f, -7f, 90f, 20f), "Debug Menu");
+			return;
+        }
 
-			if (currentAct != null)
-			{
-				if (currentState == ToggleStates.Minimal)
-					currentAct.OnGUIMinimal();
-				else
-					currentAct.OnGUI();
-			}
-		}
+        position = GUI.BeginScrollView(viewportSize, position, contentSize);
 
-		GUI.EndScrollView();
+        base.OnGUI();
+        if (currentState == ToggleStates.All || currentAct == null)
+        {
+            allActs.OnGUI();
+            StartNewColumn();
+        }
+
+        if (currentAct != null)
+        {
+            if (currentState == ToggleStates.Minimal)
+                currentAct.OnGUIMinimal();
+            else
+                currentAct.OnGUI();
+        }
+
+        GUI.EndScrollView();
 	}
 
-	private void DrawToggleButtons()
+    protected override void PreWindow()
+    {
+        if (GUI.Button(new Rect(5f, 0f, 20f, 20f), "X", Helpers.CloseButtonStyle()))
+        {
+            currentState = ToggleStates.Off;
+            position = Vector2.zero;
+        }
+
+        if (GUI.Button(new Rect(25f, 0f, 20f, 20f), "–", Helpers.CloseButtonStyle()))
+        {
+            currentState = ToggleStates.Minimal;
+        }
+
+        if (GUI.Button(new Rect(45F, 0f, 20f, 20f), "+", Helpers.CloseButtonStyle()))
+        {
+            currentState = ToggleStates.All;
+        }
+    }
+    protected override bool OnToggleWindowDraw()
 	{
-		if (GUI.Button(new Rect(5f, 0f, 20f, 20f), "-"))
-		{
-			currentState = ToggleStates.Off;
-			position = Vector2.zero;
-		}
-
-		if (GUI.Button(new Rect(25f, 0f, 20f, 20f), "+"))
-		{
-			currentState = ToggleStates.Minimal;
-		}
-
-		if (GUI.Button(new Rect(45F, 0f, 25f, 20f), "X"))
-		{
-			currentState = ToggleStates.All;
-		}
-	}
-
-	protected override bool OnToggleWindowDraw()
-	{
-		switch (currentState)
+        
+        switch (currentState)
 		{
 			case ToggleStates.Off:
-				windowRect.Set(windowRect.x, windowRect.y, 100, 60);
+				windowRect.Set(windowRect.x, windowRect.y, 100, 40);
 				break;
 			case ToggleStates.Minimal:
-				windowRect.Set(windowRect.x, windowRect.y, ColumnWidth+40, Size.y);
+				windowRect.Set(windowRect.x, windowRect.y, ColumnWidth + 40, Size.y);
 				break;
 			case ToggleStates.All:
 				windowRect.Set(windowRect.x, windowRect.y, Size.x, Size.y);

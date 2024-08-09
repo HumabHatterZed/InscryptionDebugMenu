@@ -117,7 +117,7 @@ public class HotkeysPopup : BaseWindow
 		return !currentText.Equals(newText);
 	}
 
-	private void OnChoseButtonCallback(int chosenIndex, string chosenValue, string inventoryIndex)
+	private void OnChoseButtonCallback(int chosenIndex, string chosenValue, List<string> inventoryIndex)
 	{
 		if (chosenIndex == -1)
 		{

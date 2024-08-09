@@ -3,6 +3,7 @@ using DebugMenu.Scripts.Acts;
 using DebugMenu.Scripts.Utils;
 using DiskCardGame;
 using GBC;
+using System.Security.Cryptography;
 using UnityEngine;
 
 namespace DebugMenu.Scripts.Act2;
@@ -20,25 +21,13 @@ public class Act2 : BaseAct
 		Window.LabelHeader("Act 2");
 		Window.Padding();
 
-		using (Window.HorizontalScope(3))
-		{
-			Window.Label("Currency: \n" + SaveData.Data.currency);
-			if (Window.Button("+5"))
-			{
-				SaveData.Data.currency += 5;
-			}
-
-			if (Window.Button("-5"))
-			{
-				SaveData.Data.currency = Mathf.Max(0, SaveData.Data.currency - 5);
-			}
-		}
+		DrawCurrencyGUI();
 
 		Window.StartNewColumn();
 		OnGUICurrentNode();
 	}
 	
-	private void OnGUICurrentNode()
+	public override void OnGUICurrentNode()
 	{
 		if (GBCEncounterManager.Instance?.EncounterOccurring ?? false)
 		{
@@ -47,21 +36,37 @@ public class Act2 : BaseAct
 			return;
 		}
 		
-		Window.Label("Unhandled state type");
+		Window.Label("Unhandled GameState type!");
 	}
+    private void DrawCurrencyGUI()
+    {
+        Window.LabelHeader("Currency: " + SaveData.Data.currency);
+        using (Window.HorizontalScope(4))
+        {
+            if (Window.Button("+1"))
+                SaveData.Data.currency++;
 
-	public override void OnGUIMinimal()
-	{
-		OnGUICurrentNode();
-	}
+            if (Window.Button("-1"))
+                SaveData.Data.currency = Mathf.Max(0, SaveData.Data.currency - 1);
 
-	public override void Restart()
+            if (Window.Button("+5"))
+                SaveData.Data.currency += 5;
+
+            if (Window.Button("-5"))
+                SaveData.Data.currency = Mathf.Max(0, SaveData.Data.currency - 5);
+        }
+    }
+
+    public override void Restart()
 	{
-		// TODO:
-	}
+        Log("Restarting GBC...");
+        FrameLoopManager.Instance.SetIterationDisabled(disabled: false);
+        MenuController.LoadGameFromMenu(newGameGBC: true);
+    }
 
 	public override void Reload()
 	{
-		// TODO:
-	}
+        Log("Reloading GBC...");
+		base.Reload();
+    }
 }

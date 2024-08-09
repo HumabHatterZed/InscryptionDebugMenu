@@ -4,7 +4,6 @@ public abstract class BaseMapSequence
 {
 	public virtual void OnGUI()
 	{
-		
 	}
 	
 	public abstract void ToggleSkipNextNode();
