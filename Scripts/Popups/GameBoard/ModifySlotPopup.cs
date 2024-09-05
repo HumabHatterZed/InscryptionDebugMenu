@@ -20,10 +20,10 @@ public class ModifySlotPopup : BaseWindow
 	private List<SlotModificationManager.ModificationType> lastSearchedList = null;
 	private Vector2 foundCardListScrollVector = Vector2.zero;
 
-	public CardSlot currentSelection = null;
-	List<SlotModificationManager.ModificationType> modificationTypes = null;
+	private CardSlot currentSelection = null;
 	private bool changingSlot = false;
 
+	private GameBoardPopup gameBoardPopup = null;
     public override void OnGUI()
 	{
         if (GameFlowManager.m_Instance?.CurrentGameState != GameState.CardBattle)
@@ -31,21 +31,23 @@ public class ModifySlotPopup : BaseWindow
             IsActive = false;
             return;
         }
+		gameBoardPopup ??= Plugin.Instance.GetWindow<GameBoardPopup>();
+		currentSelection = gameBoardPopup.currentSelection.Item2;
         if (currentSelection == null)
 			return;
 
 		base.OnGUI();
 
-		modificationTypes ??= GuidManager.GetValues<SlotModificationManager.ModificationType>();
+		//modificationTypes ??= GuidManager.GetValues<SlotModificationManager.ModificationType>();
 		SlotModificationManager.ModificationType type = currentSelection.GetSlotModification();
-		string header = currentSelection.IsPlayerSlot ? "Player" : "Opponent";
+		string header = currentSelection.IsPlayerSlot ? "Player" : (gameBoardPopup.selectedQueue ? "Queue" : "Opponent");
 
         LabelHeader($"{header} Slot ({currentSelection.Index})");
 		Label("<b>Current Slot Modification:</b> " + type.ToString());
 		if (Button("Reset Slot Behaviour", disabled: () => new(() => changingSlot || currentSelection.GetSlotModification() == SlotModificationManager.ModificationType.NoModification)))
 			Plugin.Instance.StartCoroutine(ChangeSlotModification(SlotModificationManager.ModificationType.NoModification));
 
-		GUILayout.BeginArea(new Rect(5f, Size.y / 3f, Size.x - 10f, Size.y / 3f * 2));
+		GUILayout.BeginArea(new Rect(5f, Size.y / 3f, Size.x - 10f, Size.y * 2f / 3f - 40f));
         OnGUISlotSearcher();
         GUILayout.EndArea();
 	}
@@ -60,21 +62,21 @@ public class ModifySlotPopup : BaseWindow
 		lastSearchedList = new List<SlotModificationManager.ModificationType>();
 		if (lastCardSearch != "")
 		{
-			if (GetCardByName(lastCardSearch, out var result))
+			if (GetSlotModByName(lastCardSearch, out var result))
 			{
-				lastSearchedList.Add(modificationTypes[result]);
+				lastSearchedList.Add(SlotModificationManager.AllModificationTypes[result]);
 			}
-			else if (GetCardsThatContain(lastCardSearch, out List<int> results))
+			else if (GetSlotModsThatContain(lastCardSearch, out List<int> results))
 			{
 				foreach (int item in results)
 				{
-					lastSearchedList.Add(modificationTypes[item]);
+					lastSearchedList.Add(SlotModificationManager.AllModificationTypes[item]);
 				}
 			}
 		}
 		else
 		{
-			lastSearchedList = new(modificationTypes);
+			lastSearchedList = SlotModificationManager.AllModificationTypes;
 		}
 		FoundCardList();
 	}
@@ -86,9 +88,9 @@ public class ModifySlotPopup : BaseWindow
 		{
 			foreach (SlotModificationManager.ModificationType lastSearched in lastSearchedList)
 			{
-				string display = lastSearched.ToString();
-
-                if (changingSlot || currentSelection.GetSlotModification() == lastSearched)
+				SlotModificationManager.Info info = SlotModificationManager.AllModificationInfos.InfoByID(lastSearched);
+				string display = info.Name + $"\n({info.RulebookName})";
+				if (changingSlot || currentSelection.GetSlotModification() == lastSearched)
 				{
 					GUILayout.Label(display, Helpers.DisabledButtonStyle());
 				}
@@ -103,6 +105,7 @@ public class ModifySlotPopup : BaseWindow
 			GUILayout.Label("No ModificationTypes Found...");
 		}
 		GUILayout.EndScrollView();
+
 		GUILayout.EndVertical();
 	}
 
@@ -112,16 +115,17 @@ public class ModifySlotPopup : BaseWindow
 		yield return currentSelection.SetSlotModification(modType);
         changingSlot = false;
     }
-	private bool GetCardsThatContain(string cardName, out List<int> results)
+	private bool GetSlotModsThatContain(string cardName, out List<int> results)
 	{
 		string lower = cardName.ToLower();
 		bool result = false;
 		results = new List<int>();
-		for (int i = 0; i < modificationTypes.Count; i++)
+		for (int i = 0; i < SlotModificationManager.AllModificationInfos.Count; i++)
 		{
-			SlotModificationManager.ModificationType allType = modificationTypes[i];
-			string name = allType.ToString();
-			if (name != null && name.ToLower().Contains(lower))
+			SlotModificationManager.Info info = SlotModificationManager.AllModificationInfos[i];
+			bool matchName = info.Name != null && info.Name.ToLowerInvariant().Contains(lower);
+			bool matchRulebook = info.RulebookName != null && info.RulebookName.ToLowerInvariant().Contains(lower);
+            if (matchName || matchRulebook)
 			{
 				results.Add(i);
 				result = true;
@@ -131,16 +135,15 @@ public class ModifySlotPopup : BaseWindow
 		return result;
 	}
 
-	private bool GetCardByName(string cardName, out int index)
+	private bool GetSlotModByName(string cardName, out int index)
 	{
 		bool exists = false;
 		index = -1;
 		
-		List<SlotModificationManager.ModificationType> allModsCopy = modificationTypes;
-		for (int i = 0; i < allModsCopy.Count; i++)
+		for (int i = 0; i < SlotModificationManager.AllModificationTypes.Count; i++)
 		{
-			SlotModificationManager.ModificationType mod = allModsCopy[i];
-			if (mod.ToString() == cardName)
+			SlotModificationManager.Info info = SlotModificationManager.AllModificationInfos[i];
+			if ((info.Name != null && info.Name.ToLowerInvariant() == cardName) || (info.RulebookName != null && info.RulebookName.ToLowerInvariant() == cardName))
 			{
 				index = i;
 				exists = true;

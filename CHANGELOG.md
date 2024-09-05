@@ -38,6 +38,7 @@
 - Added new function to create a new card in your hand
 - Added new function to clear current Bones
 - Added new function to reset the scale balance
+- Renamed 'Auto-Win' and 'Auto-Lose' buttons to 'WIN Battle' and 'LOSE Battle'
 
 ### Game Board
 - Fixed unnecessary horizontal scroll bar in the 'Replace/Create Card in Slot' list
@@ -45,6 +46,7 @@
 - Added new function to reset the selected card's taken damage
 - Added new function to reset the selected card's shields
 - Rearranged menu elements
+- 'Modify card' popup window now updates when you select a new slot
 - Renamed 'No triggers' button to 'Ignore Triggers'
 
 ### Deck Editor

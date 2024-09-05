@@ -1206,7 +1206,7 @@ public static class DrawCardInfo // used for the deck editors
     private const float abilityButtonWidth = 190f;
     private const float abilityButtonHeight = 40f;
     private const int sigilsPerRow = 3;
-    private const int sigilsPerPage = 9;
+    private const int sigilsPerPage = 6;
 
     private static string nameReplacementField = "";
     private static int selectedTab = 0;

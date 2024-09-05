@@ -139,10 +139,10 @@ public abstract class BaseCardBattleSequence
 
 		using (Window.HorizontalScope(2))
 		{
-			if (Window.Button("Auto-win battle"))
+			if (Window.Button("WIN battle"))
 				AutoWinBattle();
 
-			if (Window.Button("Auto-lose battle"))
+			if (Window.Button("LOSE battle"))
 				AutoLoseBattle();
 		}
 	}

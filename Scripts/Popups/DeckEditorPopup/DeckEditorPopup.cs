@@ -37,7 +37,7 @@ public class DeckEditorPopup : BaseWindow
 			return;
 		}
 		
-		GUILayout.BeginArea(new Rect(5f, 0f, Size.x - 10f, Size.y / 4f));
+		GUILayout.BeginArea(new Rect(5f, 0f, Size.x - 10f, Size.y / 4f - 20f));
 		OnGUIDeckViewer();
 		GUILayout.EndArea();
 		

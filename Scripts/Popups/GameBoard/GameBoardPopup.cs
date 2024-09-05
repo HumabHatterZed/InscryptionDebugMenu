@@ -17,8 +17,8 @@ public class GameBoardPopup : BaseWindow
 	
     private const float width = 100f;
 
-	private Tuple<PlayableCard, CardSlot> currentSelection = new(null, null);
-    private bool selectedQueue = false;
+	public Tuple<PlayableCard, CardSlot> currentSelection = new(null, null);
+    public bool selectedQueue = false;
 
     private string lastCardSearch = "";
     private List<CardInfo> lastSearchedList = null;
@@ -131,11 +131,11 @@ public class GameBoardPopup : BaseWindow
         {
             if (Button("Modify Slot", disabled: () => new(() => selectedQueue)))
             {
-                Plugin.Instance.ToggleWindow<ModifySlotPopup>().currentSelection = currentSelection.Item2;
+                Plugin.Instance.ToggleWindow<ModifySlotPopup>();
             }
             if (Button("Modify card", disabled: () => new(() => card == null)))
             {
-                Plugin.Instance.ToggleWindow<BoardCardEditorPopup>().currentSelection = currentSelection.Item1;
+                Plugin.Instance.ToggleWindow<BoardCardEditorPopup>();
             }
         }
         bool replace = card != null;
@@ -272,8 +272,6 @@ public class GameBoardPopup : BaseWindow
             yield return BoardManager.Instance.CreateCardInSlot(info, slot);
             currentSelection = new(slot.Card, slot);
         }
-
-        Plugin.Instance.GetWindow<BoardCardEditorPopup>().currentSelection = currentSelection.Item1;
     }
 
     private bool GetCardsThatContain(string cardName, out List<int> results)
@@ -372,8 +370,6 @@ public class GameBoardPopup : BaseWindow
                 currentSelection = new(card, BoardManager.Instance.OpponentSlotsCopy.Find(x => x.Index == index));
             else
                 currentSelection = new(card, slot);
-
-            Plugin.Instance.GetWindow<BoardCardEditorPopup>().currentSelection = currentSelection.Item1;
         }
     }
 

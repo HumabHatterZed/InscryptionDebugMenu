@@ -13,8 +13,9 @@ public class BoardCardEditorPopup : BaseWindow
     public override string PopupName => "Board Card Editor";
     public override Vector2 Size => new(600f, 768f);
 
-    public PlayableCard currentSelection = null;
+    private PlayableCard currentSelection = null;
 
+    private GameBoardPopup gameBoardPopup = null;
     public override void OnGUI()
     {
         base.OnGUI();
@@ -23,6 +24,8 @@ public class BoardCardEditorPopup : BaseWindow
             IsActive = false;
             return;
         }
+        gameBoardPopup ??= Plugin.Instance.GetWindow<GameBoardPopup>();
+        currentSelection = gameBoardPopup.currentSelection.Item1;
         if (currentSelection == null)
         {
             GUILayout.Label("No card selected!", Helpers.HeaderLabelStyle());
