@@ -1,43 +1,40 @@
-﻿using BepInEx.Logging;
-using DebugMenu.Scripts.Acts;
-using DebugMenu.Scripts.Utils;
+﻿using DebugMenu.Scripts.Acts;
 using DiskCardGame;
 using GBC;
-using System.Security.Cryptography;
 using UnityEngine;
 
 namespace DebugMenu.Scripts.Act2;
 
 public class Act2 : BaseAct
 {
-	public Act2(DebugWindow window) : base(window)
-	{
-		m_mapSequence = new Act2MapSequence(this);
-		m_cardBattleSequence = new Act2CardBattleSequence(window);
-	}
-	
-	public override void OnGUI()
-	{
-		Window.LabelHeader("Act 2");
-		Window.Padding();
+    public Act2(DebugWindow window) : base(window)
+    {
+        m_mapSequence = new Act2MapSequence(this);
+        m_cardBattleSequence = new Act2CardBattleSequence(window);
+    }
 
-		DrawCurrencyGUI();
+    public override void OnGUI()
+    {
+        Window.LabelHeader("Act 2");
+        Window.Padding();
 
-		Window.StartNewColumn();
-		OnGUICurrentNode();
-	}
-	
-	public override void OnGUICurrentNode()
-	{
-		if (GBCEncounterManager.Instance?.EncounterOccurring ?? false)
-		{
-			Window.LabelHeader("Encounter");
-			m_cardBattleSequence.OnGUI();
-			return;
-		}
-		
-		Window.Label("Unhandled GameState type!");
-	}
+        DrawCurrencyGUI();
+
+        Window.StartNewColumn();
+        OnGUICurrentNode();
+    }
+
+    public override void OnGUICurrentNode()
+    {
+        if (GBCEncounterManager.Instance?.EncounterOccurring ?? false)
+        {
+            Window.LabelHeader("Encounter");
+            m_cardBattleSequence.OnGUI();
+            return;
+        }
+
+        Window.Label("Unhandled GameState type!");
+    }
     private void DrawCurrencyGUI()
     {
         Window.LabelHeader("Currency: " + SaveData.Data.currency);
@@ -58,15 +55,15 @@ public class Act2 : BaseAct
     }
 
     public override void Restart()
-	{
+    {
         Log("Restarting GBC...");
         FrameLoopManager.Instance.SetIterationDisabled(disabled: false);
         MenuController.LoadGameFromMenu(newGameGBC: true);
     }
 
-	public override void Reload()
-	{
+    public override void Reload()
+    {
         Log("Reloading GBC...");
-		base.Reload();
+        base.Reload();
     }
 }

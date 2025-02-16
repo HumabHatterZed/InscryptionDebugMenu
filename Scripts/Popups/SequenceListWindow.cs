@@ -1,8 +1,4 @@
 ﻿using DebugMenu.Scripts.Acts;
-using DebugMenu.Scripts.Utils;
-using DiskCardGame;
-using UnityEngine;
-using UnityEngine.SceneManagement;
 
 namespace DebugMenu.Scripts.Popups;
 
@@ -21,7 +17,7 @@ public class SequenceListPopup : ButtonListPopup
         base.OnGUI();
     }
     public override void DrawExtraTools()
-	{
+    {
         updateSequences = base.Toggle("Show All sequences", ref Configs.m_showAllSeqs);
         base.Toggle("Hide mod GUIDs", ref Configs.m_hideGuids);
     }

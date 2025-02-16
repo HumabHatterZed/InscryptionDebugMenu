@@ -1,14 +1,6 @@
-﻿using DebugMenu.Scripts.Utils;
-using DiskCardGame;
-using GBC;
+﻿using DiskCardGame;
 using InscryptionAPI.Card;
-using InscryptionAPI.Dialogue;
-using System.Collections;
-using System.Dynamic;
-using System.Text;
 using UnityEngine;
-using static DialogueDataUtil;
-using static InscryptionAPI.Dialogue.DialogueManager;
 
 namespace DebugMenu.Scripts.Popups;
 
@@ -85,7 +77,7 @@ public class AbilityInfoPopup : PaginatedWindow
 
         if (!string.IsNullOrEmpty(filterText))
         {
-            filterText.ToLowerInvariant();
+            filterText = filterText.ToLowerInvariant();
             if (FilterByGuid)
             {
                 infoToShow.RemoveAll(x => string.IsNullOrEmpty(x.ModGUID) || !x.ModGUID.ToLowerInvariant().Contains(filterText));
@@ -175,7 +167,7 @@ public class AbilityInfoPopup : PaginatedWindow
     {
         if (learnAll)
         {
-            ProgressionData.Data.learnedAbilities.AddRange(AllInfos.Where((a) => !ProgressionData.Data.learnedAbilities.Contains(a.Id)).Select((a)=>a.Id));
+            ProgressionData.Data.learnedAbilities.AddRange(AllInfos.Where((a) => !ProgressionData.Data.learnedAbilities.Contains(a.Id)).Select((a) => a.Id));
         }
         else
         {
@@ -187,9 +179,9 @@ public class AbilityInfoPopup : PaginatedWindow
     private string FullAbilityInfo(AbilityInfo info, string guid = null)
     {
         guid ??= AbilityManager.AllAbilities.Find(x => x.Info == info)?.ModGUID ?? "";
-        
+
         return
-            $"<b?GUID:</b>\n{guid}" +
+            $"<b>GUID:</b>\n{guid}" +
             $"\n<b>Ability:</b>\n{info.ability}" +
             $"\n<b>Rulebook Name:</b>\n{info.rulebookName}" +
             $"\n<b>Description:</b>\n<i>{info.rulebookDescription}</i>" +
@@ -226,7 +218,7 @@ public class AbilityInfoPopup : PaginatedWindow
     {
         foreach (AbilityInfo info in ModdedInfos.Select(x => x.Info))
         {
-            Plugin.Log.LogMessage(FullAbilityInfo(info) +"\n");
+            Plugin.Log.LogMessage(FullAbilityInfo(info) + "\n");
         }
         Plugin.Log.LogInfo($"Total Modded: {ModdedInfos.Count}");
     }

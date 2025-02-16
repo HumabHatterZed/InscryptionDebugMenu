@@ -1,5 +1,25 @@
 # Changelog
 
+## 1.5.0
+### Magnificus Mod
+- Added support
+
+## 1.4.1
+### General
+- Fixed filter in AbilityInfo window being case sensitive when it shouldn't
+- Added additional hotkey options
+- Updated Change Hotkeys menu UI
+
+### Game Info
+- Added new subwindow 'Show Progression Data'
+	- Allows you to learn and unlearn cards, abilities, items, mechanics
+
+### Deck Editor
+- Fixed 'Add Card' scroll menu overflow
+- Fixed 'Edit Abilities' menu not showing multiple entries for stacking sigils
+- Moved sigil modification toggles below management tabs
+- Modified text of sigil and special ability management tabs to clarify purpose and distinguish them from each other
+
 ## 1.4.0
 ### General
 - Fixed GUIClip errors when exiting to main menu during a battle

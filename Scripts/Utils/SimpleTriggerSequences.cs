@@ -1,25 +1,25 @@
-﻿using System.Collections;
-using DebugMenu.Scripts.Popups;
+﻿using DebugMenu.Scripts.Popups;
 using DiskCardGame;
 using InscryptionAPI.Nodes;
+using System.Collections;
 
 namespace DebugMenu.Scripts.Sequences;
 
 public abstract class BaseTriggerSequence
 {
     public abstract string SequenceName { get; }
-	public string ModGUID { get; set; }
+    public string ModGUID { get; set; }
     public string ButtonName
-	{
-		get
-		{
-			if (ModGUID == null)
-				return SequenceName;
+    {
+        get
+        {
+            if (ModGUID == null)
+                return SequenceName;
 
-			return $"{SequenceName}\n{ModGUID}";
-		}
-	}
-	public abstract void Sequence();
+            return $"{SequenceName}\n{ModGUID}";
+        }
+    }
+    public abstract void Sequence();
 }
 /// <summary>
 /// Sequences that simply transition to a new game state.
@@ -43,13 +43,13 @@ public abstract class SimpleTriggerSequences : BaseTriggerSequence
 /// </summary>
 public class APIModdedSequence : BaseTriggerSequence
 {
-	public NewNodeManager.FullNode CustomNodeData;
-	public override string SequenceName => CustomNodeData.name;
-	public override void Sequence()
-	{
-		CustomSpecialNodeData nodeData = new(CustomNodeData);
-		Singleton<GameFlowManager>.Instance.TransitionToGameState(GameState.SpecialCardSequence, nodeData);
-	}
+    public NewNodeManager.FullNode CustomNodeData;
+    public override string SequenceName => CustomNodeData.name;
+    public override void Sequence()
+    {
+        CustomSpecialNodeData nodeData = new(CustomNodeData);
+        Singleton<GameFlowManager>.Instance.TransitionToGameState(GameState.SpecialCardSequence, nodeData);
+    }
 }
 
 /// <summary>
@@ -86,78 +86,78 @@ public class SimpleStubSequence : SimpleTriggerSequences
 
 public class BossSequence : SimpleTriggerSequences
 {
-	public override string SequenceName => "Boss Battle";
-	public override NodeData NodeData => null;
-	public override Type NodeDataType => typeof(BossBattleNodeData);
+    public override string SequenceName => "Boss Battle";
+    public override NodeData NodeData => null;
+    public override Type NodeDataType => typeof(BossBattleNodeData);
 
-	public override void Sequence()
-	{
-		TriggerCardBattleSequenceWindow window = Plugin.Instance.ToggleWindow<TriggerCardBattleSequenceWindow>();
-		window.SelectedBattleType = TriggerCardBattleSequenceWindow.BattleType.BossBattle;
-	}
+    public override void Sequence()
+    {
+        TriggerCardBattleSequenceWindow window = Plugin.Instance.ToggleWindow<TriggerCardBattleSequenceWindow>();
+        window.SelectedBattleType = TriggerCardBattleSequenceWindow.BattleType.BossBattle;
+    }
 }
 
 public class CardBattleSequence : SimpleTriggerSequences
 {
-	public override string SequenceName => "Card Battle";
-	public override NodeData NodeData => null;
-	public override Type NodeDataType => typeof(CardBattleNodeData);
+    public override string SequenceName => "Card Battle";
+    public override NodeData NodeData => null;
+    public override Type NodeDataType => typeof(CardBattleNodeData);
 
-	public override void Sequence()
-	{
-		TriggerCardBattleSequenceWindow window = Plugin.Instance.ToggleWindow<TriggerCardBattleSequenceWindow>();
-		window.SelectedBattleType = TriggerCardBattleSequenceWindow.BattleType.CardBattle;
-	}
+    public override void Sequence()
+    {
+        TriggerCardBattleSequenceWindow window = Plugin.Instance.ToggleWindow<TriggerCardBattleSequenceWindow>();
+        window.SelectedBattleType = TriggerCardBattleSequenceWindow.BattleType.CardBattle;
+    }
 }
 
 public class TotemBattleSequence : SimpleTriggerSequences
 {
-	public override string SequenceName => "Totem Battle";
-	public override NodeData NodeData => null;
-	public override Type NodeDataType => typeof(TotemBattleNodeData);
+    public override string SequenceName => "Totem Battle";
+    public override NodeData NodeData => null;
+    public override Type NodeDataType => typeof(TotemBattleNodeData);
 
-	public override void Sequence()
-	{
-		TriggerCardBattleSequenceWindow window = Plugin.Instance.ToggleWindow<TriggerCardBattleSequenceWindow>();
-		window.SelectedBattleType = TriggerCardBattleSequenceWindow.BattleType.TotemBattle;
-	}
+    public override void Sequence()
+    {
+        TriggerCardBattleSequenceWindow window = Plugin.Instance.ToggleWindow<TriggerCardBattleSequenceWindow>();
+        window.SelectedBattleType = TriggerCardBattleSequenceWindow.BattleType.TotemBattle;
+    }
 }
 
 public abstract class ThreeCardChoiceSequences : SimpleTriggerSequences
 {
-	public abstract CardChoicesType ChoiceType { get; }
-	
-	public override string SequenceName => $"3 {ChoiceType} Choice";
-	public override Type NodeDataType => typeof(CardChoicesNodeData);
-	public override NodeData NodeData
-	{
-		get
-		{
+    public abstract CardChoicesType ChoiceType { get; }
+
+    public override string SequenceName => $"3 {ChoiceType} Choice";
+    public override Type NodeDataType => typeof(CardChoicesNodeData);
+    public override NodeData NodeData
+    {
+        get
+        {
             CardChoicesNodeData data = new()
             {
                 choicesType = ChoiceType
             };
             return data;
-		}
-	}
+        }
+    }
 }
 
 public class RandomChoiceSequences : ThreeCardChoiceSequences
 {
-	public override CardChoicesType ChoiceType => CardChoicesType.Random;
+    public override CardChoicesType ChoiceType => CardChoicesType.Random;
 }
 
 public class TribeChoiceSequences : ThreeCardChoiceSequences
 {
-	public override CardChoicesType ChoiceType => CardChoicesType.Tribe;
+    public override CardChoicesType ChoiceType => CardChoicesType.Tribe;
 }
 
 public class CostChoiceSequences : ThreeCardChoiceSequences
 {
-	public override CardChoicesType ChoiceType => CardChoicesType.Cost;
+    public override CardChoicesType ChoiceType => CardChoicesType.Cost;
 }
 
 public class DeathCardChoiceSequences : ThreeCardChoiceSequences
 {
-	public override CardChoicesType ChoiceType => CardChoicesType.Deathcard;
+    public override CardChoicesType ChoiceType => CardChoicesType.Deathcard;
 }

@@ -1,11 +1,5 @@
-﻿using BepInEx.Logging;
-using DebugMenu.Scripts.Act3;
-using DebugMenu.Scripts.Acts;
-using DebugMenu.Scripts.Sequences;
-using DebugMenu.Scripts.Utils;
+﻿using DebugMenu.Scripts.Acts;
 using DiskCardGame;
-using System.Collections;
-using System.Reflection;
 using UnityEngine;
 
 namespace DebugMenu.Scripts.Grimora;
@@ -15,14 +9,14 @@ public class ActGrimora : BaseAct
     public static List<CardInfo> lastUsedStarterDeck = null;
 
     public ActGrimora(DebugWindow window) : base(window)
-	{
-		m_mapSequence = new GrimoraMapSequence(this);
-		m_cardBattleSequence = new GrimoraCardBattleSequence(window);
-	}
+    {
+        m_mapSequence = new GrimoraMapSequence(this);
+        m_cardBattleSequence = new GrimoraCardBattleSequence(window);
+    }
 
-	public override void OnGUI()
-	{
-		Window.LabelHeader("Grimora Act");
+    public override void OnGUI()
+    {
+        Window.LabelHeader("Grimora Act");
         if (RunState.Run.currentNodeId > 0 && Singleton<MapNodeManager>.m_Instance != null)
         {
             MapNode nodeWithId = Singleton<MapNodeManager>.Instance.GetNodeWithId(RunState.Run.currentNodeId);
@@ -35,9 +29,9 @@ public class ActGrimora : BaseAct
             DrawItemsGUI();
         }
 
-		Window.StartNewColumn();
-		OnGUICurrentNode();
-	}
+        Window.StartNewColumn();
+        OnGUICurrentNode();
+    }
 
     public override bool OnSpecialCardSequence(string nodeDataName)
     {
@@ -58,10 +52,10 @@ public class ActGrimora : BaseAct
                     return true;
                 case "GravebardCamp":
                     GrimoraModHelper.OnGUIGravebardCamp(this.Window);
-					return true;
+                    return true;
             }
         }
-		return false;
+        return false;
     }
 
     public override void Restart()

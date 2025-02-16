@@ -1,12 +1,5 @@
-﻿using BepInEx.Logging;
-using DebugMenu.Scripts.Acts;
-using DebugMenu.Scripts.Grimora;
-using DebugMenu.Scripts.Utils;
+﻿using DebugMenu.Scripts.Acts;
 using DiskCardGame;
-using GBC;
-using Infiniscryption.P03KayceeRun.Patchers;
-using InscryptionAPI.Saves;
-using System.Security.Cryptography;
 using UnityEngine;
 
 namespace DebugMenu.Scripts.Act3;
@@ -16,31 +9,31 @@ public class Act3 : BaseAct
     public static List<CardInfo> lastUsedStarterDeck = null;
 
     public Act3(DebugWindow window) : base(window)
-	{
-		m_mapSequence = new Act3MapSequence(this);
-		m_cardBattleSequence = new Act3CardBattleSequence(window);
-	}
-	
-	public override void OnGUI()
-	{
-		MapNodeManager mapNodeManager = Singleton<MapNodeManager>.m_Instance;
-		if (mapNodeManager == null || mapNodeManager.nodes == null || RunState.Run == null)
-			return;
-		
-		Window.LabelHeader("Act 3");
+    {
+        m_mapSequence = new Act3MapSequence(this);
+        m_cardBattleSequence = new Act3CardBattleSequence(window);
+    }
+
+    public override void OnGUI()
+    {
+        MapNodeManager mapNodeManager = Singleton<MapNodeManager>.m_Instance;
+        if (mapNodeManager == null || mapNodeManager.nodes == null || RunState.Run == null)
+            return;
+
+        Window.LabelHeader("Act 3");
         if (RunState.Run.currentNodeId > 0 && Singleton<MapNodeManager>.m_Instance != null)
         {
             MapNode nodeWithId = Singleton<MapNodeManager>.Instance.GetNodeWithId(RunState.Run.currentNodeId);
             Window.Label("Current Node ID: " + RunState.Run.currentNodeId + "\nCurrent Node: " + nodeWithId?.name, new(0, 80f));
         }
 
-		DrawCurrencyGUI();
-		DrawItemsGUI();
-		Window.Padding();
+        DrawCurrencyGUI();
+        DrawItemsGUI();
+        Window.Padding();
 
         Window.StartNewColumn();
-		OnGUICurrentNode();
-	}
+        OnGUICurrentNode();
+    }
     private void DrawCurrencyGUI()
     {
         Window.LabelHeader("Currency: " + Part3SaveData.Data.currency);
@@ -76,8 +69,8 @@ public class Act3 : BaseAct
         }
     }
 
-	public override void Reload()
-	{
+    public override void Reload()
+    {
         if (P03ModHelper.Enabled && P03ModHelper.IsP03Run)
         {
             Log("Reloading P03 KCM...");
@@ -88,5 +81,5 @@ public class Act3 : BaseAct
             Log("Reloading Act 3...");
             base.Reload();
         }
-	}
+    }
 }

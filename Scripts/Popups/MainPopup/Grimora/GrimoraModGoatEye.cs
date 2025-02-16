@@ -1,19 +1,10 @@
-﻿using System.Collections;
-using System.Reflection;
-using System.Reflection.Emit;
-using System.Security.Cryptography;
-using BepInEx.Bootstrap;
-using DebugMenu.Scripts.Acts;
-using DebugMenu.Scripts.All;
-using DebugMenu.Scripts.Utils;
+﻿using DebugMenu.Scripts.Acts;
 using DiskCardGame;
 using GrimoraMod;
 using GrimoraMod.Saving;
 using HarmonyLib;
-using InscryptionAPI.Helpers;
-using InscryptionAPI.Regions;
+using System.Reflection;
 using UnityEngine;
-using static UnityEngine.GraphicsBuffer;
 
 namespace DebugMenu.Scripts.Grimora;
 
@@ -66,7 +57,7 @@ public static partial class GrimoraModHelper
 
         Window.Toggle("Modify First Boon", ref ModifyingFirst);
         MeshRenderer targetRend = ModifyingFirst ? stoneQuad : rejectQuad;
-        
+
         using (Window.HorizontalScope(2))
         {
             Window.Label($"<b>Starting Bones:</b>\n {Mathf.Max(0, GrimoraRunState.CurrentRun.regionTier - GrimoraRunState.CurrentRun.riggedDraws.Count)}");

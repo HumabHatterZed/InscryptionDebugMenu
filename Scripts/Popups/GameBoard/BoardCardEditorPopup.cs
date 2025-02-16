@@ -1,9 +1,5 @@
-﻿using DebugMenu.Scripts.Acts;
-using DebugMenu.Scripts.Utils;
+﻿using DebugMenu.Scripts.Utils;
 using DiskCardGame;
-using GBC;
-using InscryptionAPI.Card;
-using InscryptionAPI.Helpers.Extensions;
 using UnityEngine;
 
 namespace DebugMenu.Scripts.Popups.DeckEditorPopup;

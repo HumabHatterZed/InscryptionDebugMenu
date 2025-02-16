@@ -1,10 +1,8 @@
-﻿using System.Collections;
-using System.Security.Cryptography;
-using DebugMenu.Scripts.Popups;
+﻿using DebugMenu.Scripts.Popups;
 using DebugMenu.Scripts.Popups.DeckEditorPopup;
-using DebugMenu.Scripts.Utils;
 using DiskCardGame;
 using InscryptionAPI.Helpers;
+using System.Collections;
 using UnityEngine;
 using static DebugMenu.Scripts.DrawableGUI;
 
@@ -12,25 +10,25 @@ namespace DebugMenu.Scripts.Acts;
 
 public abstract class BaseCardBattleSequence
 {
-	public bool IsGBCBattle() => SceneLoader.ActiveSceneName == "GBC_CardBattle";
+    public bool IsGBCBattle() => SceneLoader.ActiveSceneName == "GBC_CardBattle";
 
-	public abstract int PlayerBones { get; }
-	public abstract int ScalesBalance { get; }
-	public abstract int PlayerEnergy { get; }
-	public abstract int PlayerMaxEnergy { get; }
-	public abstract CardDrawPiles CardDrawPiles { get; }
-	public CardDrawPiles3D CardDrawPiles3D => CardDrawPiles as CardDrawPiles3D;
+    public abstract int PlayerBones { get; }
+    public abstract int ScalesBalance { get; }
+    public abstract int PlayerEnergy { get; }
+    public abstract int PlayerMaxEnergy { get; }
+    public abstract CardDrawPiles CardDrawPiles { get; }
+    public CardDrawPiles3D CardDrawPiles3D => CardDrawPiles as CardDrawPiles3D;
 
-	protected readonly DebugWindow Window;
+    protected readonly DebugWindow Window;
 
-	protected bool hasSideDeck = true;
-	protected bool hasBones = true;
-	private bool drawingTutorCard = false;
+    protected bool hasSideDeck = true;
+    protected bool hasBones = true;
+    private bool drawingTutorCard = false;
     private bool dealingScaleDamage = false;
-	public BaseCardBattleSequence(DebugWindow window)
-	{
-		this.Window = window;
-	}
+    public BaseCardBattleSequence(DebugWindow window)
+    {
+        this.Window = window;
+    }
 
     private bool DisableCardDraw()
     {
@@ -46,29 +44,39 @@ public abstract class BaseCardBattleSequence
     };
 
     public virtual void OnGUI()
-	{
+    {
         Window.LabelHeader("CardBattle");
-        Opponent opp = TurnManager.m_Instance?.Opponent;
-        if (opp == null)
+        if (TurnManager.m_Instance == null)
             return;
 
-        int difficulty = (Singleton<MapNodeManager>.m_Instance.GetNodeWithId(RunState.Run.currentNodeId).Data as CardBattleNodeData)?.difficulty ?? TurnManager.Instance.Opponent.Difficulty;
-        Window.Label($"{TurnManager.Instance.Opponent.GetType()?.Name}\nBlueprint: {TurnManager.Instance.Opponent.Blueprint?.name}", new(0, 80f));
-        Window.Label($"Difficulty: {difficulty + RunState.Run.DifficultyModifier} ({difficulty} + {RunState.Run.DifficultyModifier})" +
-            $"\nTurn Number: {TurnManager.Instance.TurnNumber}");
+        int difficulty = -1;
+        int turnNum = TurnManager.Instance.TurnNumber;
         
+        if (TurnManager.Instance.Opponent != null)
+        {
+            difficulty = TurnManager.Instance.Opponent.Difficulty;
+            if (Singleton<MapNodeManager>.m_Instance != null)
+            {
+                difficulty = (MapNodeManager.Instance.GetNodeWithId(RunState.Run.currentNodeId)?.Data as CardBattleNodeData)?.difficulty ?? difficulty;
+            }
+            Window.Label($"{TurnManager.Instance.Opponent.GetType()?.Name}\nBlueprint: {TurnManager.Instance.Opponent.Blueprint?.name}", new(0, 80f));
+        }
+
+        Window.Label($"Difficulty: {difficulty + RunState.Run.DifficultyModifier} ({difficulty} + {RunState.Run.DifficultyModifier})" +
+            $"\nTurn Number: {turnNum}");
+
         using (Window.HorizontalScope(4))
-		{
-			if (Window.Button("Draw Main", disabled: () => new(() => DisableCardDraw())))
-				DrawCard();
+        {
+            if (Window.Button("Draw Main", disabled: () => new(() => DisableCardDraw())))
+                DrawCard();
 
-			if (Window.Button("Draw Side", disabled: DisableSideDraw))
-				DrawSideDeck();
+            if (Window.Button("Draw Side", disabled: DisableSideDraw))
+                DrawSideDeck();
 
-			if (Window.Button("Draw Tutor", disabled: DisableTutorDraw))
-				Plugin.Instance.StartCoroutine(DrawTutor());
+            if (Window.Button("Draw Tutor", disabled: DisableTutorDraw))
+                DrawTutorDeck();
 
-			if (Window.Button("Draw New", disabled: () => new(() => SaveManager.SaveFile.IsPart2 && !IsGBCBattle())))
+            if (Window.Button("Draw New", disabled: () => new(() => SaveManager.SaveFile.IsPart2 && !IsGBCBattle())))
                 Plugin.Instance.ToggleWindow(typeof(DrawCustomCardPopup));
         }
 
@@ -92,11 +100,11 @@ public abstract class BaseCardBattleSequence
             }
         }
 
-		using (Window.HorizontalScope(4))
-		{
-			Window.Label("Scales:\n" + ScalesBalance);
+        using (Window.HorizontalScope(4))
+        {
+            Window.Label("Scales:\n" + ScalesBalance);
 
-			if (Window.Button("+2"))
+            if (Window.Button("+2"))
                 Plugin.Instance.StartCoroutine(DealDamage(2));
 
             if (Window.Button("-2"))
@@ -104,48 +112,48 @@ public abstract class BaseCardBattleSequence
 
             if (Window.Button("Reset", disabled: () => new(() => dealingScaleDamage)))
                 Plugin.Instance.StartCoroutine(ResetScale());
-		}
+        }
 
-		using (Window.HorizontalScope(4))
-		{
-			Window.Label($"Energy: \n{PlayerEnergy}\\{PlayerMaxEnergy}");
+        using (Window.HorizontalScope(4))
+        {
+            Window.Label($"Energy: \n{PlayerEnergy}\\{PlayerMaxEnergy}");
 
-			if (Window.Button("-1"))
-				RemoveEnergy(1);
+            if (Window.Button("-1"))
+                RemoveEnergy(1);
 
-			if (Window.Button("+1"))
-				AddEnergy(1);
+            if (Window.Button("+1"))
+                AddEnergy(1);
 
-			if (Window.Button("Fill"))
-				FillEnergy();
-		}
+            if (Window.Button("Fill"))
+                FillEnergy();
+        }
 
-		using (Window.HorizontalScope(4))
-		{
-			Window.Label("Max Energy");
+        using (Window.HorizontalScope(4))
+        {
+            Window.Label("Max Energy");
 
-			if (Window.Button("-1"))
-				RemoveMaxEnergy(1);
+            if (Window.Button("-1"))
+                RemoveMaxEnergy(1);
 
-			if (Window.Button("+1"))
-				AddMaxEnergy(1);
+            if (Window.Button("+1"))
+                AddMaxEnergy(1);
 
-			if (Window.Button("MAX"))
-				SetMaxEnergyToMax();
-		}
+            if (Window.Button("MAX"))
+                SetMaxEnergyToMax();
+        }
 
-		if (Window.Button("Show Game Board"))
-			Plugin.Instance.ToggleWindow<GameBoardPopup>();
+        if (Window.Button("Show Game Board"))
+            Plugin.Instance.ToggleWindow<GameBoardPopup>();
 
-		using (Window.HorizontalScope(2))
-		{
-			if (Window.Button("WIN battle"))
-				AutoWinBattle();
+        using (Window.HorizontalScope(2))
+        {
+            if (Window.Button("WIN battle"))
+                AutoWinBattle();
 
-			if (Window.Button("LOSE battle"))
-				AutoLoseBattle();
-		}
-	}
+            if (Window.Button("LOSE battle"))
+                AutoLoseBattle();
+        }
+    }
 
     private IEnumerator DrawFromMainDeck()
     {
@@ -160,7 +168,7 @@ public abstract class BaseCardBattleSequence
         yield return CardDrawPiles3D.DrawFromSidePile();
     }
     public IEnumerator DrawTutor()
-	{
+    {
         drawingTutorCard = true;
         yield return CardDrawPiles.Deck.Tutor();
         if (ViewManager.m_Instance != null)
@@ -170,14 +178,14 @@ public abstract class BaseCardBattleSequence
     }
 
     private IEnumerator AddEnergyAndIncreaseLimit(int amount)
-	{
-		if (ResourcesManager.Instance.PlayerEnergy + amount > ResourcesManager.Instance.PlayerMaxEnergy)
-			yield return ResourcesManager.Instance.AddMaxEnergy(amount);
+    {
+        if (ResourcesManager.Instance.PlayerEnergy + amount > ResourcesManager.Instance.PlayerMaxEnergy)
+            yield return ResourcesManager.Instance.AddMaxEnergy(amount);
 
-		yield return ResourcesManager.Instance.AddEnergy(amount);
-	}
-	public virtual void DrawCard()
-	{
+        yield return ResourcesManager.Instance.AddEnergy(amount);
+    }
+    public virtual void DrawCard()
+    {
         if (CardDrawPiles != null)
         {
             if (CardDrawPiles.Deck.CardsInDeck > 0)
@@ -185,12 +193,12 @@ public abstract class BaseCardBattleSequence
         }
         else
         {
-            Plugin.Log.LogError("Couldn't draw from deck; can't find CardDrawPiles!");
+            Plugin.Log.LogError("Couldn't draw from deck; cannot find CardDrawPiles!");
         }
     }
 
-	public virtual void DrawSideDeck()
-	{
+    public virtual void DrawSideDeck()
+    {
         if (CardDrawPiles3D != null)
         {
             if (CardDrawPiles3D.SideDeck.Cards.Count > 0)
@@ -200,15 +208,27 @@ public abstract class BaseCardBattleSequence
         }
         else
         {
-            Plugin.Log.LogError("Couldn't draw from side deck; can't find CardDrawPiles3D!");
+            Plugin.Log.LogError("Couldn't draw from side deck; cannot find CardDrawPiles3D!");
         }
     }
-	public virtual void AddBones(int amount)
-	{
+    public virtual void DrawTutorDeck()
+    {
+        if (CardDrawPiles != null)
+        {
+            if (CardDrawPiles.Deck.CardsInDeck > 0)
+                Plugin.Instance.StartCoroutine(DrawTutor());
+        }
+        else
+        {
+            Plugin.Log.LogError("Couldn't draw from deck; cannot find CardDrawPiles!");
+        }
+    }
+    public virtual void AddBones(int amount)
+    {
         Plugin.Instance.StartCoroutine(ResourcesManager.Instance.AddBones(amount));
     }
-	public virtual void RemoveBones(int amount)
-	{
+    public virtual void RemoveBones(int amount)
+    {
         int bones = Mathf.Min(PlayerBones, amount);
         Plugin.Instance.StartCoroutine(ResourcesManager.Instance.SpendBones(bones));
     }
@@ -216,34 +236,34 @@ public abstract class BaseCardBattleSequence
     {
         Plugin.Instance.StartCoroutine(ResourcesManager.Instance.SpendBones(PlayerBones));
     }
-	public virtual void SetMaxEnergyToMax()
-	{
-		if (ResourceDrone.m_Instance != null)
-		{
+    public virtual void SetMaxEnergyToMax()
+    {
+        if (ResourceDrone.m_Instance != null)
+        {
             for (int i = ResourcesManager.Instance.PlayerMaxEnergy; i < 6; i++)
                 Singleton<ResourceDrone>.Instance.OpenCell(i);
         }
 
         ResourcesManager.Instance.StartCoroutine(ResourcesManager.Instance.AddMaxEnergy(6));
     }
-	public virtual void AddMaxEnergy(int amount)
-	{
+    public virtual void AddMaxEnergy(int amount)
+    {
         ResourcesManager.Instance.StartCoroutine(ResourcesManager.Instance.AddMaxEnergy(amount));
     }
-	public virtual void RemoveMaxEnergy(int amount)
-	{
+    public virtual void RemoveMaxEnergy(int amount)
+    {
         ResourcesManager.Instance.StartCoroutine(ResourcesManager.Instance.RemoveMaxEnergy(amount));
     }
-	public virtual void FillEnergy()
-	{
+    public virtual void FillEnergy()
+    {
         ResourcesManager.Instance.StartCoroutine(ResourcesManager.Instance.RefreshEnergy());
     }
-	public virtual void AddEnergy(int amount)
-	{
+    public virtual void AddEnergy(int amount)
+    {
         ResourcesManager.Instance.StartCoroutine(AddEnergyAndIncreaseLimit(amount));
     }
     public virtual void RemoveEnergy(int amount)
-	{
+    {
         ResourcesManager.Instance.StartCoroutine(ResourcesManager.Instance.SpendEnergy(amount));
     }
 
@@ -278,7 +298,7 @@ public abstract class BaseCardBattleSequence
         dealingScaleDamage = false;
     }
     public virtual void AutoLoseBattle()
-	{
+    {
         LifeManager lifeManager = Singleton<LifeManager>.Instance;
         int lifeLeft = Mathf.Abs(lifeManager.Balance - 5);
         if (Configs.DisablePlayerDamage)
@@ -286,8 +306,8 @@ public abstract class BaseCardBattleSequence
         else
             Plugin.Instance.StartCoroutine(lifeManager.ShowDamageSequence(lifeLeft, Configs.InstantScales ? 1 : lifeLeft, true, 0.125f, null, 0f, false));
     }
-	public virtual void AutoWinBattle()
-	{
+    public virtual void AutoWinBattle()
+    {
         LifeManager lifeManager = Singleton<LifeManager>.Instance;
         int lifeLeft = Mathf.Abs(lifeManager.Balance - 5);
         if (Configs.DisableOpponentDamage)

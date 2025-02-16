@@ -2,22 +2,19 @@
 using DebugMenu.Scripts.Utils;
 using DiskCardGame;
 using InscryptionAPI.Card;
-using InscryptionAPI.Helpers.Extensions;
 using System.Collections;
-using System.Reflection;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 namespace DebugMenu.Scripts.Popups;
 
 public class GameBoardPopup : BaseWindow
 {
-	public override string PopupName => "Game Board";
-	public override Vector2 Size => new(850f, 600f);
-	
+    public override string PopupName => "Game Board";
+    public override Vector2 Size => new(850f, 600f);
+
     private const float width = 100f;
 
-	public Tuple<PlayableCard, CardSlot> currentSelection = new(null, null);
+    public Tuple<PlayableCard, CardSlot> currentSelection = new(null, null);
     public bool selectedQueue = false;
 
     private string lastCardSearch = "";
@@ -26,7 +23,7 @@ public class GameBoardPopup : BaseWindow
     private Vector2 buttonSize = new(width, 134f);
     private ButtonDisabledData NoCard => new() { Disabled = currentSelection?.Item1 == null };
     public override void OnGUI()
-	{
+    {
         if (GameFlowManager.m_Instance?.CurrentGameState != GameState.CardBattle)
         {
             IsActive = false;
@@ -50,7 +47,7 @@ public class GameBoardPopup : BaseWindow
 
         using (HorizontalScope(2))
         {
-            if (Button("Clear Board", new(100f, 0)))
+            if (Button("Clear Board", new(100f, 0), disabled: () => new(() => BoardManager.Instance.CardsOnBoard.Count == 0)))
             {
                 foreach (PlayableCard item in BoardManager.Instance.CardsOnBoard)
                 {
@@ -58,7 +55,7 @@ public class GameBoardPopup : BaseWindow
                         RemoveFromBoard(item);
                 }
             }
-            if (Button("Clear Queue", new(100f, 0)))
+            if (Button("Clear Queue", new(100f, 0), disabled: () => new(() => TurnManager.Instance.Opponent.Queue.Count == 0)))
             {
                 foreach (PlayableCard item in TurnManager.Instance.Opponent.Queue)
                 {
@@ -261,7 +258,7 @@ public class GameBoardPopup : BaseWindow
             PlayableCard cardToKill = queueSlot ? QueuedCardFromSlot(slot) : slot.Card;
             yield return KillCardTriggerless(cardToKill);
         }
-        
+
         if (queueSlot)
         {
             yield return TurnManager.Instance.Opponent.QueueCard(info, slot);
@@ -339,17 +336,17 @@ public class GameBoardPopup : BaseWindow
     }
     private PlayableCard QueuedCardFromSlot(CardSlot slot) => TurnManager.Instance.Opponent.Queue.Find(x => x.QueuedSlot == slot);
     private void DisplayCardSlots(int numToDisplay, List<CardSlot> slots)
-	{
+    {
         string name = slots[0].IsPlayerSlot ? "Player" : "Opponent";
-		using (HorizontalScope(numToDisplay))
-		{
+        using (HorizontalScope(numToDisplay))
+        {
             for (int i = 0; i < numToDisplay; i++)
-			{
-				PlayableCard card = slots[i]?.Card;
+            {
+                PlayableCard card = slots[i]?.Card;
                 DisplayPlayableCard(name, i, card, slots[i], false);
-			}
+            }
         }
-	}
+    }
     private void DisplayQueuedCards(int numToDisplay, List<PlayableCard> cards)
     {
         using (HorizontalScope(numToDisplay))
@@ -375,13 +372,13 @@ public class GameBoardPopup : BaseWindow
 
     // returns a list of all queued slots plus null placeholders for empty queue slots
     private List<PlayableCard> GetAllQueuedCards(int count)
-	{
-		List<PlayableCard> result = new();
-		for (int i = 0; i < count; i++)
-		{
-			PlayableCard queuedCard = QueuedCardFromSlot(BoardManager.Instance.OpponentSlotsCopy[i]);
-			result.Add(queuedCard ?? null);
-		}
-		return result;
-	}
+    {
+        List<PlayableCard> result = new();
+        for (int i = 0; i < count; i++)
+        {
+            PlayableCard queuedCard = QueuedCardFromSlot(BoardManager.Instance.OpponentSlotsCopy[i]);
+            result.Add(queuedCard ?? null);
+        }
+        return result;
+    }
 }

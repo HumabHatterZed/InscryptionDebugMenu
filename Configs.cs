@@ -15,15 +15,15 @@ public static class Configs
         OneAndThreeQuarters,
         Double
     }
-	public static bool DisableDialogue
+    public static bool DisableDialogue
     {
-		get => m_disableDialogue.Value;
-		set
-		{
-			m_disableDialogue.Value = value;
-			Plugin.Instance.Config.Save();
-		}
-	}
+        get => m_disableDialogue.Value;
+        set
+        {
+            m_disableDialogue.Value = value;
+            Plugin.Instance.Config.Save();
+        }
+    }
     public static bool DisablePlayerDamage
     {
         get => m_disablePlayerDamage.Value;
@@ -43,24 +43,24 @@ public static class Configs
         }
     }
     public static string Hotkeys
-	{
-		get => m_hotkeys.Value;
-		set
-		{
-			m_hotkeys.Value = value;
-			Plugin.Instance.Config.Save();
-		}
-	}
-	
-	public static bool ShowDebugMenu
-	{
-		get => m_showDebugMenu.Value;
-		set
-		{
-			m_showDebugMenu.Value = value;
-			Plugin.Instance.Config.Save();
-		}
-	}
+    {
+        get => m_hotkeys.Value;
+        set
+        {
+            m_hotkeys.Value = value;
+            Plugin.Instance.Config.Save();
+        }
+    }
+
+    public static bool ShowDebugMenu
+    {
+        get => m_showDebugMenu.Value;
+        set
+        {
+            m_showDebugMenu.Value = value;
+            Plugin.Instance.Config.Save();
+        }
+    }
 
     public static bool VerticalItems
     {
@@ -126,7 +126,7 @@ public static class Configs
         "F2:Battle DrawCard," +
         "LeftShift+F2:Battle DrawSideDeck",
         "Quick access buttons to control the debug menu. Use the in-game menu to change them");
-	public static ConfigEntry<bool> m_showDebugMenu = Bind("General", "Show Debug Menu", true, "Should the in-game debug menu window be shown?");
+    public static ConfigEntry<bool> m_showDebugMenu = Bind("General", "Show Debug Menu", true, "Should the in-game debug menu window be shown?");
     public static ConfigEntry<bool> m_verticalItems = Bind("General", "Display Items Vertically", false, "Should the items be displayed on vertically?");
     public static ConfigEntry<bool> m_instantScales = Bind("General", "Instant Scales", false, "Makes the debug menu deal scale damage instantly instead of one at a time.");
 
@@ -134,7 +134,7 @@ public static class Configs
     public static ConfigEntry<bool> m_showAllSeqs = Bind("General.Sequences", "Show All Sequences", true, "Should all sequences be shown in the Trigger Sequence menu?");
 
     private static ConfigEntry<T> Bind<T>(string section, string key, T defaultValue, string description)
-	{
-		return Plugin.Instance.Config.Bind(section, key, defaultValue, new ConfigDescription(description, null, Array.Empty<object>()));
-	}
+    {
+        return Plugin.Instance.Config.Bind(section, key, defaultValue, new ConfigDescription(description, null, Array.Empty<object>()));
+    }
 }

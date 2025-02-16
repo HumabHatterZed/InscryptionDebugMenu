@@ -1,14 +1,14 @@
 # Debug Menu
 
-Adds a new in-game menu with buttons to quickly skip through the game.
-Also provides additional information if you have trouble debugging your mod!
+Adds a new in-game menu to help quickly skip through the game.
+Also provides additional information and tools to aid in debugging your game or mod!
 
 Features:
 - Manually trigger map events
 - Edit your deck and the game board
 - Skip through card battles and dialogue
+- View in-game data
 - Use hotkeys to speed up debugging
-- View in-game data to help debugging
 
 Supports:
 - Act 1
@@ -18,7 +18,7 @@ Supports:
 - Magnificus (Minimal support)
 
 
-Hotkeys:
+Default Hotkeys:
 - `~` Show/Hide Debug Menu
 - `F1` Set time scale to 1
 - `F1 + LeftControl` Set time scale to 10
@@ -37,8 +37,7 @@ https://github.com/JamesVeug/InscryptionDebugMenu
 
 **But... I don't know how to code!**
 
-Create an issue on the GitHub page and mention it on the Inscryption modding discord and someone might take on the task.
-
+Create an issue on the GitHub page or mention it on the Inscryption modding discord and someone might take on the task.
 
 ## Contributors
 - JamesGames

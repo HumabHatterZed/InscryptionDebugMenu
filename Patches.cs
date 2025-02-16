@@ -1,17 +1,15 @@
-﻿using System.Collections;
-using System.Reflection;
-using System.Reflection.Emit;
-using DebugMenu.Scripts.Act1;
+﻿using DebugMenu.Scripts.Act1;
 using DebugMenu.Scripts.Act3;
 using DebugMenu.Scripts.All;
 using DebugMenu.Scripts.Grimora;
-using DebugMenu.Scripts.Popups.DeckEditorPopup;
 using DebugMenu.Scripts.Utils;
 using DiskCardGame;
 using GBC;
 using HarmonyLib;
 using InscryptionAPI.Card;
 using InscryptionAPI.Regions;
+using System.Collections;
+using System.Reflection;
 using UnityEngine;
 
 namespace DebugMenu;
@@ -230,14 +228,31 @@ internal class DisablePlayerDamagePatch
     }
 
     [HarmonyPostfix]
+    [HarmonyPatch(typeof(MagnificusMod.Generation), nameof(MagnificusMod.Generation.LifeManagerStuff))]
+    private static IEnumerator NegateDamageMagnificus(IEnumerator enumerator, bool toPlayer)
+    {
+        if (Configs.DisablePlayerDamage && toPlayer)
+            yield break;
+
+        if (Configs.DisableOpponentDamage && !toPlayer)
+            yield break;
+
+        yield return enumerator;
+    }
+
+    [HarmonyPostfix]
     [HarmonyPatch(typeof(MagnificusLifeManager), nameof(MagnificusLifeManager.ShowLifeLoss))]
     private static IEnumerator PlayersReceiveNoDamageMagnificus(IEnumerator enumerator, bool player)
     {
         if (Configs.DisablePlayerDamage && player)
+        {
             yield break;
+        }
 
         if (Configs.DisableOpponentDamage && !player)
+        {
             yield break;
+        }
 
         yield return enumerator;
     }

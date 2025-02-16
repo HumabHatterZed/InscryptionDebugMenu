@@ -3,7 +3,7 @@
     <PropertyGroup>
         <TargetFramework>netstandard2.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
-        <Version>1.4.0</Version>
+        <Version>1.5.0</Version>
         <Nullable>disable</Nullable>
         <IsPackable>false</IsPackable>
         <LangVersion>latest</LangVersion>
@@ -17,6 +17,7 @@
       <None Remove="InscryptionAPI.dll" />
       <None Remove="GrimoraMod.dll" />
       <None Remove="Infiniscryption.P03KayceeRun.dll" />
+      <None Remove="MagnificusMod.dll" />
     </ItemGroup>
 
     <ItemGroup>
@@ -40,6 +41,9 @@
       </Reference>
       <Reference Include="P03KayceeRun" Private="false">
         <HintPath>Infiniscryption.P03KayceeRun.dll</HintPath>
+      </Reference>
+      <Reference Include="MagnificusMod" Private="false">
+        <HintPath>MagnificusMod.dll</HintPath>
       </Reference>
     </ItemGroup>
 

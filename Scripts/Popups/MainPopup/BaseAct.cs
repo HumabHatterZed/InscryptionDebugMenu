@@ -1,11 +1,8 @@
 ﻿using BepInEx.Logging;
-using DebugMenu.Scripts.Grimora;
 using DebugMenu.Scripts.Popups;
 using DebugMenu.Scripts.Sequences;
 using DebugMenu.Scripts.Utils;
 using DiskCardGame;
-using GBC;
-using UnityEngine;
 
 namespace DebugMenu.Scripts.Acts;
 
@@ -139,7 +136,7 @@ public abstract class BaseAct
 
         Helpers.ShownSequences[chosenIndex].Sequence();
     }
-    
+
     internal static Tuple<List<string>, List<string>> GetListsOfSequences()
     {
         List<BaseTriggerSequence> sequences = Helpers.ShownSequences;
@@ -181,13 +178,13 @@ public abstract class BaseAct
                 Type nodeType = Helpers.LastSpecialNodeData.GetType();
                 string nodeDataName = nodeType.Name.Replace("NodeData", "");
                 Window.LabelHeader(nodeDataName);
-                
+
                 if (nodeType == typeof(CardChoicesNodeData))
                 {
                     OnGUICardChoiceNodeSequence();
                     return;
                 }
-                
+
                 if (!OnSpecialCardSequence(nodeDataName))
                 {
                     Window.Label($"Unhandled NodeData Type!");
