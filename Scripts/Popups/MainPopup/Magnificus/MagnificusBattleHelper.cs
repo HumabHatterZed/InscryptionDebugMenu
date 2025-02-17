@@ -9,8 +9,8 @@ namespace DebugMenu.Scripts.Magnificus;
 
 public static partial class MagnificusModHelper
 {
-    public static SpellPile SpellPile => GetSpellPile();
-    private static SpellPile _spellPile;
+    public static ManagedBehaviour SpellPile => GetSpellPile();
+    private static ManagedBehaviour _spellPile;
 
     public static List<CardInfo> SpellsInDeck => RunState.Run.playerDeck.Cards.FindAll(x => x.HasTrait(Trait.EatsWarrens));
     public static List<CardInfo> SpellsInDeckCache;
@@ -25,7 +25,7 @@ public static partial class MagnificusModHelper
 
         if (window.Button("Refresh Spells", disabled: () => new(() => SpellsInDeckCache.Count == 0)))
         {
-            SpellPile.refreshSpellBookCards(SpellsInDeckCache);
+            (SpellPile as SpellPile).refreshSpellBookCards(SpellsInDeckCache);
         }
 
         if (window.Button("Add Spells Back to Deck", disabled: () => new(() => SpellsInDeckCache.Count == 0)))
@@ -38,9 +38,9 @@ public static partial class MagnificusModHelper
         }
     }
 
-    private static SpellPile GetSpellPile()
+    private static ManagedBehaviour GetSpellPile()
     {
-        if (_spellPile == null)
+        if (_spellPile == null && Enabled)
         {
             _spellPile = TurnManager.Instance.transform.parent.Find("SpellPile").GetComponent<SpellPile>();
         }
