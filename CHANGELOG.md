@@ -2,6 +2,7 @@
 
 ## 1.5.0
 ### General
+- Added option to reroll rare card choice
 - Rearranged some elements in the card battle menu
 
 ### Magnificus Mod

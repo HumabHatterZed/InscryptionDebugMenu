@@ -3,6 +3,8 @@ using DebugMenu.Scripts.Popups;
 using DebugMenu.Scripts.Sequences;
 using DebugMenu.Scripts.Utils;
 using DiskCardGame;
+using System.Collections;
+using UnityEngine;
 
 namespace DebugMenu.Scripts.Acts;
 
@@ -185,6 +187,12 @@ public abstract class BaseAct
                     return;
                 }
 
+                if (nodeType == typeof(ChooseRareCardNodeData))
+                {
+                    OnGUIRareChoiceNodeSequence();
+                    return;
+                }
+
                 if (!OnSpecialCardSequence(nodeDataName))
                 {
                     Window.Label($"Unhandled NodeData Type!");
@@ -203,11 +211,62 @@ public abstract class BaseAct
     {
         return false;
     }
+
     private void OnGUICardChoiceNodeSequence()
     {
         if (Window.Button("Reroll choices"))
         {
             Singleton<SpecialNodeHandler>.Instance.cardChoiceSequencer.OnRerollChoices();
         }
+    }
+    private void OnGUIRareChoiceNodeSequence()
+    {
+        if (Window.Button("Reroll choices", disabled: () => new(() => rerollingRare)))
+        {
+            Plugin.Instance.StartCoroutine(RerollRareChoices());
+        }
+    }
+
+    protected bool rerollingRare = false;
+
+    private IEnumerator RerollRareChoices()
+    {
+        RareCardChoicesSequencer sequencer = SpecialNodeHandler.Instance.rareCardChoiceSequencer;
+        List<CardChoice> list;
+        int randSeed = SaveManager.SaveFile.GetCurrentRandomSeed() + UnityEngine.Random.Range(1, 99999);
+
+        rerollingRare = true;
+
+        sequencer.DisableViewDeck();
+        sequencer.CleanupMushrooms();
+        sequencer.box.GetComponentInChildren<Animator>().Play("close", 0, 0f);
+        AudioController.Instance.PlaySound3D("woodbox_close", MixerGroup.TableObjectsSFX, sequencer.box.transform.position);
+        yield return new WaitForSeconds(0.1f);
+        sequencer.CleanUpCards();
+        yield return new WaitForSeconds(0.3f);
+
+        Singleton<ViewManager>.Instance.SwitchToView(sequencer.choicesView);
+        sequencer.selectableCards = sequencer.SpawnCards(3, sequencer.box.transform, new Vector3(-1.55f, 0.2f, 0f));
+        list = (!AscensionSaveData.Data.ChallengeIsActive(AscensionChallenge.NoBossRares)) ? sequencer.rareChoiceGenerator.GenerateChoices(randSeed) : sequencer.choiceGenerator.GenerateChoices(new CardChoicesNodeData(), randSeed);       
+        
+        for (int i = 0; i < sequencer.selectableCards.Count; i++)
+        {
+            sequencer.selectableCards[i].gameObject.SetActive(value: true);
+            sequencer.selectableCards[i].ChoiceInfo = list[i];
+            sequencer.selectableCards[i].Initialize(list[i].CardInfo, sequencer.OnRewardChosen, sequencer.OnCardFlipped, startFlipped: true, sequencer.OnCardInspected);
+            sequencer.selectableCards[i].SetFaceDown(faceDown: true, immediate: true);
+            SpecialCardBehaviour[] components = sequencer.selectableCards[i].GetComponents<SpecialCardBehaviour>();
+            for (int j = 0; j < components.Length; j++)
+            {
+                components[j].OnShownForCardChoiceNode();
+            }
+        }
+
+        sequencer.box.GetComponentInChildren<Animator>().Play("open", 0, 0f);
+        AudioController.Instance.PlaySound3D("woodbox_open", MixerGroup.TableObjectsSFX, sequencer.box.transform.position);
+        ChallengeActivationUI.TryShowActivation(AscensionChallenge.NoBossRares);
+        sequencer.EnableViewDeck(sequencer.viewControlMode, sequencer.basePosition);
+
+        rerollingRare = false;
     }
 }
