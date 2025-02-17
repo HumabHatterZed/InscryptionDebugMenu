@@ -1,6 +1,9 @@
 # Changelog
 
 ## 1.5.0
+### General
+- Rearranged some elements in the card battle menu
+
 ### Magnificus Mod
 - Added support
 

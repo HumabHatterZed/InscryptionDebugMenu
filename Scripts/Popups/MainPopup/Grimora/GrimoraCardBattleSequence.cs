@@ -16,13 +16,8 @@ public class GrimoraCardBattleSequence : BaseCardBattleSequence
 
     public override void OnGUI()
     {
-        /*		TurnManager turnManager = Singleton<TurnManager>.Instance;
-                Window.Label($"{TurnManager.Instance.Opponent.GetType()}\nBlueprint: {TurnManager.Instance.Opponent.Blueprint.name}");
-                Window.Label($"Difficulty: {turnManager.Opponent.Difficulty + RunState.Run.DifficultyModifier} ({turnManager.Opponent.Difficulty} + {RunState.Run.DifficultyModifier})" +
-                    $"\nTurn Number: {TurnManager.Instance.TurnNumber}");
-        */
         base.OnGUI();
-
-        if (GrimoraModHelper.Enabled) GrimoraModHelper.DisplayHammer(this.Window);
+        if (GrimoraModHelper.Enabled)
+            GrimoraModHelper.DisplayHammer(this.Window);
     }
 }

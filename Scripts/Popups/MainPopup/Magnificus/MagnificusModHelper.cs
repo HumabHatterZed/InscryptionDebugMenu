@@ -1,4 +1,6 @@
-﻿namespace DebugMenu.Scripts.Magnificus;
+﻿using MagnificusMod;
+
+namespace DebugMenu.Scripts.Magnificus;
 
 public static partial class MagnificusModHelper
 {
@@ -8,6 +10,4 @@ public static partial class MagnificusModHelper
     {
         Plugin.HarmonyInstance.PatchAll(typeof(MagnificusModHelper));
     }
-
-    internal static bool addingMod = false;
 }

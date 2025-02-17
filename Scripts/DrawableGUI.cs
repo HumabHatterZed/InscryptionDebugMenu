@@ -76,6 +76,7 @@ public abstract class DrawableGUI
     public GUIStyle LabelHeaderStyle = GUIStyle.none;
     public GUIStyle LabelHeaderStyleLeft = GUIStyle.none;
     public GUIStyle LabelBoldStyle = GUIStyle.none;
+    public GUIStyle LabelCentredStyle = GUIStyle.none;
     public GUIStyle ButtonStyle = GUIStyle.none;
     public GUIStyle ButtonDisabledStyle = GUIStyle.none;
 
@@ -110,6 +111,10 @@ public abstract class DrawableGUI
         ButtonStyle = new(GUI.skin.button)
         {
             wordWrap = true
+        };
+        LabelCentredStyle = new(GUI.skin.label)
+        {
+            alignment = TextAnchor.MiddleCenter
         };
         ButtonDisabledStyle = Helpers.DisabledButtonStyle();
 
@@ -201,6 +206,12 @@ public abstract class DrawableGUI
             return true;
         }
         return false;
+    }
+
+    public virtual void LabelCentred(string text, Vector2? size = null)
+    {
+        (float x, float y, float w, float h) = GetPosition(size);
+        GUI.Label(new Rect(x, y, w, h), text, LabelCentredStyle);
     }
 
     public virtual void Label(string text, Vector2? size = null)

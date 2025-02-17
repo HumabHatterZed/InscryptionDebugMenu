@@ -228,19 +228,6 @@ internal class DisablePlayerDamagePatch
     }
 
     [HarmonyPostfix]
-    [HarmonyPatch(typeof(MagnificusMod.Generation), nameof(MagnificusMod.Generation.LifeManagerStuff))]
-    private static IEnumerator NegateDamageMagnificus(IEnumerator enumerator, bool toPlayer)
-    {
-        if (Configs.DisablePlayerDamage && toPlayer)
-            yield break;
-
-        if (Configs.DisableOpponentDamage && !toPlayer)
-            yield break;
-
-        yield return enumerator;
-    }
-
-    [HarmonyPostfix]
     [HarmonyPatch(typeof(MagnificusLifeManager), nameof(MagnificusLifeManager.ShowLifeLoss))]
     private static IEnumerator PlayersReceiveNoDamageMagnificus(IEnumerator enumerator, bool player)
     {

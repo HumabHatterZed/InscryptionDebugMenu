@@ -7,8 +7,6 @@ namespace DebugMenu.Scripts.Magnificus;
 public class ActMagnificus : BaseAct
 {
     public static bool SkipNextNode = false;
-    public static bool ActivateAllMapNodesActive = false;
-
     public ActMagnificus(DebugWindow window) : base(window)
     {
         m_mapSequence = new ActMagnificusMapSequence(this);

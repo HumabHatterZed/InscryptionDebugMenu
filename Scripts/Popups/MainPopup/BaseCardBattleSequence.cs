@@ -23,8 +23,9 @@ public abstract class BaseCardBattleSequence
 
     protected bool hasSideDeck = true;
     protected bool hasBones = true;
-    private bool drawingTutorCard = false;
-    private bool dealingScaleDamage = false;
+    protected bool hasEnergy = true;
+    protected bool drawingTutorCard = false;
+    protected bool dealingScaleDamage = false;
     public BaseCardBattleSequence(DebugWindow window)
     {
         this.Window = window;
@@ -59,7 +60,7 @@ public abstract class BaseCardBattleSequence
             {
                 difficulty = (MapNodeManager.Instance.GetNodeWithId(RunState.Run.currentNodeId)?.Data as CardBattleNodeData)?.difficulty ?? difficulty;
             }
-            Window.Label($"{TurnManager.Instance.Opponent.GetType()?.Name}\nBlueprint: {TurnManager.Instance.Opponent.Blueprint?.name}", new(0, 80f));
+            Window.LabelCentred(TurnManager.Instance.Opponent.GetType()?.Name + $"\n({TurnManager.Instance.Opponent.Blueprint?.name})", new(0, 50f));
         }
 
         Window.Label($"Difficulty: {difficulty + RunState.Run.DifficultyModifier} ({difficulty} + {RunState.Run.DifficultyModifier})" +
@@ -80,11 +81,9 @@ public abstract class BaseCardBattleSequence
                 Plugin.Instance.ToggleWindow(typeof(DrawCustomCardPopup));
         }
 
-        if (!hasBones)
-        {
-            Window.Label("No Bones in this act!");
-        }
-        else
+        ManageScaleDamage();
+
+        if (hasBones)
         {
             using (Window.HorizontalScope(4))
             {
@@ -100,46 +99,35 @@ public abstract class BaseCardBattleSequence
             }
         }
 
-        using (Window.HorizontalScope(4))
+        if (hasEnergy)
         {
-            Window.Label("Scales:\n" + ScalesBalance);
+            using (Window.HorizontalScope(4))
+            {
+                Window.Label($"Energy: \n{PlayerEnergy}\\{PlayerMaxEnergy}");
 
-            if (Window.Button("+2"))
-                Plugin.Instance.StartCoroutine(DealDamage(2));
+                if (Window.Button("-1"))
+                    RemoveEnergy(1);
 
-            if (Window.Button("-2"))
-                Plugin.Instance.StartCoroutine(TakeDamage(2));
+                if (Window.Button("+1"))
+                    AddEnergy(1);
 
-            if (Window.Button("Reset", disabled: () => new(() => dealingScaleDamage)))
-                Plugin.Instance.StartCoroutine(ResetScale());
-        }
+                if (Window.Button("Fill"))
+                    FillEnergy();
+            }
 
-        using (Window.HorizontalScope(4))
-        {
-            Window.Label($"Energy: \n{PlayerEnergy}\\{PlayerMaxEnergy}");
+            using (Window.HorizontalScope(4))
+            {
+                Window.Label("Max Energy");
 
-            if (Window.Button("-1"))
-                RemoveEnergy(1);
+                if (Window.Button("-1"))
+                    RemoveMaxEnergy(1);
 
-            if (Window.Button("+1"))
-                AddEnergy(1);
+                if (Window.Button("+1"))
+                    AddMaxEnergy(1);
 
-            if (Window.Button("Fill"))
-                FillEnergy();
-        }
-
-        using (Window.HorizontalScope(4))
-        {
-            Window.Label("Max Energy");
-
-            if (Window.Button("-1"))
-                RemoveMaxEnergy(1);
-
-            if (Window.Button("+1"))
-                AddMaxEnergy(1);
-
-            if (Window.Button("MAX"))
-                SetMaxEnergyToMax();
+                if (Window.Button("MAX"))
+                    SetMaxEnergyToMax();
+            }
         }
 
         if (Window.Button("Show Game Board"))
@@ -152,6 +140,23 @@ public abstract class BaseCardBattleSequence
 
             if (Window.Button("LOSE battle"))
                 AutoLoseBattle();
+        }
+    }
+
+    public virtual void ManageScaleDamage()
+    {
+        using (Window.HorizontalScope(4))
+        {
+            Window.Label("Scales:\n" + ScalesBalance);
+
+            if (Window.Button("+2"))
+                Plugin.Instance.StartCoroutine(DealDamage(2));
+
+            if (Window.Button("-2"))
+                Plugin.Instance.StartCoroutine(TakeDamage(2));
+
+            if (Window.Button("Reset", disabled: () => new(() => dealingScaleDamage)))
+                Plugin.Instance.StartCoroutine(ResetScale());
         }
     }
 

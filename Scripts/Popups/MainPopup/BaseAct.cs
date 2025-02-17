@@ -149,7 +149,7 @@ public abstract class BaseAct
 
     public virtual void OnGUICurrentNode()
     {
-        GameFlowManager instance = GameFlowManager.m_Instance;
+        GameFlowManager instance = GameFlowManager.Instance;
         if (instance == null)
             return;
 
