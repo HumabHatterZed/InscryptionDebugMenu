@@ -24,7 +24,7 @@ public class GameBoardPopup : BaseWindow
     private ButtonDisabledData NoCard => new() { Disabled = currentSelection?.Item1 == null };
     public override void OnGUI()
     {
-        if (GameFlowManager.m_Instance?.CurrentGameState != GameState.CardBattle)
+        if (!SaveManager.SaveFile.IsPart2 && GameFlowManager.m_Instance?.CurrentGameState != GameState.CardBattle)
         {
             IsActive = false;
             return;

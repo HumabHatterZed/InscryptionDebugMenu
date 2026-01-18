@@ -16,15 +16,6 @@ public class Act2CardBattleSequence : BaseCardBattleSequence
         hasSideDeck = false;
     }
 
-    public override void OnGUI()
-    {
-        if (TurnManager.m_Instance == null)
-            return;
-
-        Window.Label("Turn Number: " + TurnManager.Instance.TurnNumber);
-        base.OnGUI();
-    }
-
     public override void DrawSideDeck() { }
 
     public override void SetMaxEnergyToMax()

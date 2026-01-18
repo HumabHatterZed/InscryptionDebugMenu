@@ -1,4 +1,9 @@
 # Changelog
+## 1.5.4
+### Act 2
+- Fixed Show Board and Show Gems buttons not working
+- Fixed Card Battle menu showing turn number in two places
+
 ## 1.5.3
 ### General
 - Fixed being unable to add items (TVFLabs)

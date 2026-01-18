@@ -13,13 +13,12 @@ public class GemManagerPopup : BaseWindow
 
     public override void OnGUI()
     {
-        base.OnGUI();
-        if (GameFlowManager.Instance.CurrentGameState != GameState.CardBattle)
+        if (!SaveManager.SaveFile.IsPart2 && GameFlowManager.m_Instance?.CurrentGameState != GameState.CardBattle)
         {
             IsActive = false;
             return;
         }
-
+        base.OnGUI();
         if (ResourcesManager.Instance != null)
         {
             LabelHeader("Player-Owned Gems");
